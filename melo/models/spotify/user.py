@@ -1,13 +1,13 @@
 from typing import Dict, List, Literal, Optional
 
-from ...utils import SPOTIFY, Image
+from ...utils import SPOTIFY, Image, URIBase
 from . import Artist, Track
 from .player import Player
 
 
-class User:
+class User(URIBase):
     def __init__(self, data: Dict) -> None:
-        self.id = data.get('id')
+        self.id = data.get('id')  #pylint disable=invalid-name
         self.name = data.get('display_name')
         self.href = 'open.spotify.com/user/' + self.id
         self.uri = data.get('uri')

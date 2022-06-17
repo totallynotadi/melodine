@@ -8,7 +8,7 @@ from .track import Track
 
 @dataclass
 class PlayerContext:
-    '''the "Flaying From" context for particular playback state'''
+    '''the "Playing From" context for particular playback state'''
     def __init__(self, data: Dict) -> None:
         self.external_urls: List[Dict[str, str]] = data.get('external_urls')
         self.type: str = data.get('type')

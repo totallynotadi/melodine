@@ -92,7 +92,7 @@ class Track(Video):
             for image in data.get(
                 "thumbnails",
                 data.get("thumbnail", {})
-                if not "thumbnails" in data.get("thumbnail", {})
+                if "thumbnails" not in data.get("thumbnail", {})
                 else data.get("thumbnail", {}).get("thumbnails", {}),
             )
         ]

@@ -1,9 +1,9 @@
 from typing import List, Literal, Optional
 
-from ...utils import SPOTIFY, Image
+from ...utils import SPOTIFY, Image, URIBase
 
 
-class Artist:
+class Artist(URIBase):
     '''
     attributes -
         id - spotify id for the album

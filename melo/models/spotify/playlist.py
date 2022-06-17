@@ -2,9 +2,9 @@ from typing import Dict, List, Optional
 
 from .track import PlaylistTrack
 from .user import User
-from ...utils import SPOTIFY, Image
+from ...utils import SPOTIFY, Image, URIBase
 
-class Playlist: #pylint: disable=too-many-instance-attributes
+class Playlist(URIBase): #pylint: disable=too-many-instance-attributes
     '''A Spotify playlist object'''
     def __init__(self, data: Dict) -> None:
 

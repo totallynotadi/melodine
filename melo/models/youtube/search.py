@@ -1,15 +1,17 @@
-from typing import List, Union
+from typing import Any, List, Union
 
 from ..ytmusic.video import Video
-from ...utils import YT, YTMUSIC
+from ...utils import YT
 
 
 def search(
-    q: str,
+    q: str,  #pylint: disable=invalid-name
     *,
     related_to_video_id: Union[str, None] = None,
     limit: int = 10,
 ) -> List[Video]:
+
+    result: List[Union[Video, Any]] = []
 
     data = YT.search(
         q=q,
@@ -18,8 +20,11 @@ def search(
         return_json=True
     )
 
-    return [
-        Video(
-            YTMUSIC.get_song(video['items'][0]['id']['videoId'])
-        ) for video in data['items']
-    ]
+    for video in data['items']:
+        video['snippet']['videoId'] = video['id']['videoId']
+        if 'thumbnails' in video['snippet']:
+            video['snippet']['thumbnails'] = list(video['snippet']['thumbnails'].values())
+        video = Video(video['snippet'])
+        result.append(video)
+
+    return result

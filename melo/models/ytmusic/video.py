@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from ...innertube import InnerTube
 from ...utils import YTMUSIC, Image
@@ -37,24 +37,34 @@ class Video:
         'uri',
         'name',
         'artists_',
-        'duration',
         'images',
+        'duration_',
         'url_',
         'recs_'
     ]
 
     def __init__(self, data: Dict) -> None:
+
+        # print(data.keys())
+        # print(data)
+
         self.id: str = data.get('videoId')  # pylint: disable=invalid-name
         self.href: str = f'https://music.youtube.com/watch?v={self.id}'
         self.uri: str = f'ytmusic:video:{self.id}'
         self.name: str = data.get('title')
 
-        self.artists_: List[Dict[str, str]] = data.get('artists')
+        self.artists_: Union[List[Dict[str, str]], str] = data.get('artists' ,data.get('channelId'))
 
-        self.duration: int = data.get('duration_seconds')
         self.images: List[Dict[str, str]] = [
-            Image(**image) for image in data.get('thumbnails')
-        ] if data.get('thumbnails') is not None else []
+            Image(**image)
+            for image in data.get(
+                'thumbnails',
+                data.get('thumbnail') if not 'thumbnails' in data.get('thumbnail', {})
+                else data.get('thumbnail', {}).get('thumbnails', [])
+            )
+        ]
+
+        self.duration_: int = data.get('duration_seconds')
 
         self.url_: str = str()
         self.recs_: List[Dict[str, Any]] = []
@@ -62,6 +72,10 @@ class Video:
     @property
     def artists(self) -> List[Artist]:
         '''Get a list of artist for the track or video'''
+
+        if isinstance(self.artists_, str):
+            self.artists_ = [YTMUSIC.get_artist(self.artists_)]
+
         for idx, artist in enumerate(self.artists_):
             if not isinstance(artist, Artist):
                 self.artists_[idx] = Artist(data=artist)
@@ -77,6 +91,16 @@ class Video:
         video_info = innertube.player(self.id)
         self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
         return self.url_
+
+    @property
+    def duration(self):
+        if self.duration_:
+            return self.duration_
+
+        video_info = YTMUSIC.get_song(self.id)['videoDetails']
+        duration = video_info.get('lengthSeconds')
+        self.duration_ = duration
+        return self.duration_
 
     def get_recommendations(
         self,

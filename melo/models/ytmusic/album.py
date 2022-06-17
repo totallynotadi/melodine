@@ -38,14 +38,16 @@ class Album:
 
     __slots__ = [
         "_data",
-        "id",
-        "name",
-        "type",
         "_artists",
         "_tracks",
+        "id",
+        "href",
+        "uri",
+        "name",
+        "type",
         "total_tracks",
         "duration",
-        "images",
+        "images"
     ]
 
     def __init__(self, *args, **kwargs) -> None:
@@ -71,6 +73,7 @@ class Album:
             self.id = YTMUSIC.get_album_browse_id(data['audioPlaylistId'])  # pylint: disable=invalid-name
         else:
             self.id = data['browseId']  # pylint: disable=invalid-name
+        self.href = f'https://music.youtube.com/playlist?list={self.id}'
         self.name = data.get('title', str())
         self.type = data.get('type', str())
         self.total_tracks = data.get('trackCount', 0)

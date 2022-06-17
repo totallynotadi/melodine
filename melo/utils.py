@@ -50,7 +50,7 @@ YTDL = YoutubeDL({
 })
 
 # user-follow-modify
-scope = '''
+SCOPES = '''
             user-read-currently-playing
             user-read-playback-state
             user-follow-read
@@ -60,10 +60,11 @@ scope = '''
             playlist-modify-public
             user-library-read
             user-library-modify
-        ''' #pylint: disable=invalid-name
+        '''  # pylint: disable=invalid-name
+
 SPOTIFY = spotipy.Spotify(
     auth_manager=spotipy.SpotifyOAuth(
-        scope=scope,
+        scope=SCOPES,
         client_id="af9f7ca54d384f3ea8b39272c0812e8e",
         client_secret="4d915d3a5853427b9d98dbdc1fe0df3a",
         redirect_uri="http://localhost:8080/"
@@ -102,6 +103,7 @@ _ytmusic_cookies = {
 
 YTMUSIC = YTMusic(auth=json.dumps(_ytmusic_cookies))
 
+
 @dataclass
 class SearchResults:
     """A dataclass   of search results.
@@ -133,3 +135,26 @@ class SearchResults:
     albums: Optional[List] = field(default_factory=list)
     tracks: Optional[List] = field(default_factory=list)
     playlists: Optional[List] = field(default_factory=list)
+
+
+class URIBase:
+    '''A base class to define basic dunder methods for all URI baed methods. It's purpose is to reduce boiler plate for models
+
+    All melo models must inherit from this class to have basic dunder methods
+    '''
+
+    uri = repr(None)
+
+    def __hash__(self):
+        return hash(self.uri)
+
+    def __eq__(self, __o: object) -> bool:
+        return (
+            type(self) is type(__o) and self.uri == __o.uri
+        )
+
+    def __ne__(self, __o: object) -> bool:
+        return not self.__eq__(__o)
+
+    def __str__(self) -> str:
+        return self.uri

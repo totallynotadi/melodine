@@ -2,11 +2,11 @@ import datetime
 from typing import List, Optional
 
 from ...innertube import InnerTube
-from ...utils import SPOTIFY, YTMUSIC, Image
+from ...utils import SPOTIFY, YTMUSIC, Image, URIBase
 from .artist import Artist
 
 
-class Track:
+class Track(URIBase):
     '''A Spotify Track Object
 
     Attributes

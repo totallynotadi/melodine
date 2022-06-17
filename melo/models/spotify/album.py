@@ -1,11 +1,11 @@
 from typing import List, Optional
 
-from ...utils import Image, SPOTIFY
+from ...utils import Image, SPOTIFY, URIBase
 from .artist import Artist
 from .track import Track
 
 
-class Album:
+class Album(URIBase):
     '''
     id - spotify id for the album
     name - the name of the album
