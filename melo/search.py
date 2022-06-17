@@ -1,6 +1,6 @@
 from typing import Iterable, Literal, Optional, Union
 
-from .domains import spotify, ytmusic
+from .models import spotify, ytmusic
 from .utils import SearchResults
 
 __all__ = ['search']

@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from ...domains import ytmusic  # pylint: disable=unused-import
+from ...models import ytmusic  # pylint: disable=unused-import
 from ...utils import YTMUSIC, Image
 
 

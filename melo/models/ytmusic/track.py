@@ -1,6 +1,6 @@
 from typing import Dict, List, NamedTuple, Union
 
-from ...domains import ytmusic  # pylint: disable=unused-import
+from ...models import ytmusic  # pylint: disable=unused-import
 from ...utils import YT, YTMUSIC, Image
 from .video import Video
 

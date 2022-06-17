@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ...domains import spotify  # pylint: disable=unused-import
+from ...models import spotify  # pylint: disable=unused-import
 from .device import Device
 from .track import Track
 
