@@ -1,16 +1,18 @@
 from typing import List, Optional
 
-from ...utils import YTMUSIC, Image
+from ...utils import YTMUSIC, Image, URIBase
 from .track import Track
 
 
-class Playlist:
+class Playlist(URIBase):
     '''A YTMusic Playlist object'''
 
     __slots__ = [
         "_data",
         "id",
         "name",
+        "href",
+        "uri",
         "description",
         "author",
         "track_count",
@@ -31,6 +33,8 @@ class Playlist:
         self._data = data
         self.id = data.get('browseId', str())  # pylint: disable=invalid-name
         self.name = data.get('title', str())
+        self.href = f'https://music.youtube.com/playlist?list={self.id}'
+        self.uri = f'ytmusic:playlist:{self.id}'
         self.description = data.get('description', str())
         self.author = data.get('author', str())
         self.track_count = data.get('trackCount', int())
@@ -39,6 +43,12 @@ class Playlist:
         self.images = [
             Image(**image) for image in data.get('thumbnails', [])
         ]
+
+    def __repr__(self) -> str:
+        return f"melo.Playlist - {(self.name or self.id or self.uri)!r}"
+
+    def __str__(self) -> str:
+        return str(self.id)
 
     def get_tracks(
         self,
@@ -75,4 +85,4 @@ class Playlist:
             A list of all the tracks from the given playlist
         '''
 
-        return list(map(lambda track: Track(track_id=track.get('videoId', str())) if isinstance(track, Track) else track, self._tracks))
+        return list(map(lambda track: track if isinstance(track, Track) else Track(track_id=track.get('videoId', str())), self._tracks))

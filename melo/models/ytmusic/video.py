@@ -1,11 +1,11 @@
 from typing import Any, Dict, List, Optional, Union
 
 from ...innertube import InnerTube
-from ...utils import YTMUSIC, Image
+from ...utils import YTMUSIC, Image, URIBase
 from .artist import Artist
 
 
-class Video:
+class Video(URIBase):
     """A YTMusic Video object
 
     Basically the same as a YTMusic Track
@@ -53,7 +53,7 @@ class Video:
         self.uri: str = f'ytmusic:video:{self.id}'
         self.name: str = data.get('title')
 
-        self.artists_: Union[List[Dict[str, str]], str] = data.get('artists' ,data.get('channelId'))
+        self.artists_: Union[List[Dict[str, str]], str] = data.get('artists', data.get('channelId'))
 
         self.images: List[Dict[str, str]] = [
             Image(**image)
@@ -68,6 +68,12 @@ class Video:
 
         self.url_: str = str()
         self.recs_: List[Dict[str, Any]] = []
+    
+    def __repr__(self) -> str:
+        return f"melo.Video - {(self.name or self.id or self.uri)!r}"
+
+    def __str__(self) -> str:
+        return str(self.id)
 
     @property
     def artists(self) -> List[Artist]:

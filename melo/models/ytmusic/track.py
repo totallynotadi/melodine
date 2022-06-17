@@ -1,11 +1,11 @@
 from typing import Dict, List, NamedTuple, Union
 
 from ...models import ytmusic  # pylint: disable=unused-import
-from ...utils import YT, YTMUSIC, Image
+from ...utils import YT, YTMUSIC, Image, URIBase
 from .video import Video
 
 
-class Track(Video):
+class Track(Video, URIBase):
     """A YTMusic Track object
 
     Attributes
@@ -41,7 +41,7 @@ class Track(Video):
                 data = YTMUSIC.get_song(data.get("videoId"))['videoDetails']
         elif (args and isinstance(args[0], str)) or "track_id" in kwargs:
             _id = kwargs["track_id"] if "track_id" in kwargs else args[0]
-            data = YTMUSIC.get_song(_id)["videoDetails"]
+            data = YTMUSIC.get_song(_id)['videoDetails']
 
         super().__init__(data=data)
 
@@ -67,22 +67,18 @@ class Track(Video):
                 ]
             )
             self.artists_ = [
-                Artist_(data.get('author'),
-                        [Image(**image) for image in data.get('thumbnail', {}).get('thumbnails')])
+                Artist_(
+                    data.get('author'),
+                    [Image(**image) for image in data.get('thumbnail', {}).get('thumbnails')]
+                )
             ]
 
-        try:
-            self.album_: Dict = (
-                YTMUSIC.get_album(data.get("album", {}).get("id"))
-                if "album" in data
-                else kwargs.get("album", {})
-            )
-        except (KeyError, ValueError):
-            self.album_ = {}
+        self.album_: Union[Dict, str] = (
+            data.get("album", {}).get("id") if "album" in data
+            else kwargs.get("album", {})
+        )
 
-        self.id: str = data.get(
-            "videoId", kwargs.get("track_id", None)
-        )  # pylint: disable=invalid-name
+        self.id: str = data.get("videoId", kwargs.get("track_id", None))  # pylint: disable=invalid-name
         self.name: str = data.get("title", str())
         self.href: str = "https://music.youtube.com/watch?v=" + self.id
         self.uri: str = f"ytmusic:track:{self.id}"
@@ -100,10 +96,22 @@ class Track(Video):
         self.url_: str = str()
         self.recs_: List[Dict] = []
 
+    def __repr__(self) -> str:
+        return f"melo.Track - {(self.name or self.id or self.uri)!r}"
+
+    def __str__(self) -> str:
+        return str(self.id)
+
     @property
     def album(self) -> "ytmusic.Album":
         """property getter for the album the given track is from"""
         from .album import Album
+
+        if isinstance(self.album_, str):
+            try:
+                self.album_ = YTMUSIC.get_album(self.album_)
+            except (KeyError, ValueError):
+                self.album_ = {}
 
         if not self.album_ or isinstance(self.album_, Album):
             return self.album_

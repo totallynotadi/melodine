@@ -131,6 +131,9 @@ class SearchResults:
     def __bool__(self):
         return any(self.__dict__.values())
 
+    def __repr__(self) -> str:
+        return f"<melo.SearchResults: {id(self)}>"
+
     artists: Optional[List] = field(default_factory=list)
     albums: Optional[List] = field(default_factory=list)
     tracks: Optional[List] = field(default_factory=list)

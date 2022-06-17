@@ -1,11 +1,11 @@
 from typing import List, Optional
 
-from ...utils import YTMUSIC, Image
+from ...utils import YTMUSIC, Image, URIBase
 from .artist import Artist
 from .track import Track
 
 
-class Album:
+class Album(URIBase):
     """A YTMusic Album object
 
     Attributes
@@ -73,8 +73,9 @@ class Album:
             self.id = YTMUSIC.get_album_browse_id(data['audioPlaylistId'])  # pylint: disable=invalid-name
         else:
             self.id = data['browseId']  # pylint: disable=invalid-name
-        self.href = f'https://music.youtube.com/playlist?list={self.id}'
         self.name = data.get('title', str())
+        self.href = f'https://music.youtube.com/playlist?list={self.id}'
+        self.uri = f'ytmusic:album:{self.id}'
         self.type = data.get('type', str())
         self.total_tracks = data.get('trackCount', 0)
         self.duration = (data.get("duration"), data.get("duration_seconds"))
@@ -82,6 +83,12 @@ class Album:
         self.images = list(
             Image(**image) for image in data.get('thumbnails', [])
         )
+    
+    def __repr__(self) -> str:
+        return f"melo.Album - {(self.name or self.id or self.uri)!r}"
+
+    def __str__(self) -> str:
+        return str(self.id)
 
     @property
     def tracks(self) -> List[Track]:

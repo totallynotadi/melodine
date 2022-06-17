@@ -50,6 +50,12 @@ class Track(URIBase):
         else:
             self.images = self.album.images.copy()
 
+    def __repr__(self) -> str:
+        return f"melo.Trackt - {(self.name or self.id or self.uri)!r}"
+
+    def __str__(self) -> str:
+        return str(self.id)
+
     def test_run(): #pylint: disable=no-method-argument
         return Track(SPOTIFY.search('ritchrd - paris', type='track')['tracks']['items'][0])
 

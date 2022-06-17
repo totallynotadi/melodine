@@ -1,10 +1,10 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from ...models import ytmusic  # pylint: disable=unused-import
-from ...utils import YTMUSIC, Image
+from ...utils import YTMUSIC, Image, URIBase
 
 
-class Artist:
+class Artist(URIBase):
     """A YTMusic Artist object
 
     Attributes
@@ -25,6 +25,8 @@ class Artist:
         "_data",
         "id",
         "name",
+        "href",
+        "uri",
         "_singles",
         "_albums",
         "_songs",
@@ -33,15 +35,20 @@ class Artist:
     ]
 
     def __init__(self, *args, **kwargs) -> None:
-        self._data = ''
+        self._data: Union[str, dict] = str()
         if (len(args) > 0 and isinstance(args[0], dict)) or 'data' in kwargs:
             self._data = kwargs['data'] if 'data' in kwargs else args[0]
+            if 'artist' in self._data:
+                self._data = YTMUSIC.get_artist(self._data.get('browseId'))
         elif (len(args) > 0 and isinstance(args[0], str)) or 'artist_id' in kwargs:
             _id = kwargs['artist_id'] if 'artist_id' in kwargs else args[0]
             self._data = YTMUSIC.get_artist(_id)
 
         self.id = self._data.get('channelId', str())  # pylint: disable=invalid-name
         self.name = self._data.get('name', str())
+        self.href = f'https://music.youtube.com/channel/{self.id}'
+        self.uri = f'ytmusic:artist:{self.id}'
+        
         self._singles = self._data.get('singles', {}).get('results', [])
         # doesn't have the 'type' property in the album abjects
         self._albums = self._data.get('albums', {}).get('results', [])
@@ -52,9 +59,16 @@ class Artist:
         self._albums.extend(self._singles)
         self._songs = self._data.get('songs', {}).get('results', {})
         self._videos = self._data.get('videos', {}).get('results', {})
+        
         self.images = [
             Image(**image) for image in self._data.get('thumbnails', [])
         ]
+
+    def __repr__(self) -> str:
+        return f"melo.Artist - {(self.name or self.id or self.uri)!r}"
+
+    def __str__(self) -> str:
+        return str(self.id)
 
     def get_singles(self):
         '''get list of artist singles'''

@@ -31,6 +31,12 @@ class Playlist(URIBase): #pylint: disable=too-many-instance-attributes
 
         self.total_tracks: int = data.get('tracks')['total']
 
+    def __repr__(self) -> str:
+        return f"melo.Playlist - {(self.name or self.id or self.uri)!r}"
+
+    def __str__(self) -> str:
+        return str(self.id)
+
     def get_tracks(
         self,
         limit: Optional[int] = 20,

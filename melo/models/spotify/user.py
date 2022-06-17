@@ -7,7 +7,7 @@ from .player import Player
 
 class User(URIBase):
     def __init__(self, data: Dict) -> None:
-        self.id = data.get('id')  #pylint disable=invalid-name
+        self.id = data.get('id')  #pylint: disable=invalid-name
         self.name = data.get('display_name')
         self.href = 'open.spotify.com/user/' + self.id
         self.uri = data.get('uri')
