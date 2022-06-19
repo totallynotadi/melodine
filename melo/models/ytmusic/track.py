@@ -45,40 +45,39 @@ class Track(Video, URIBase):
 
         super().__init__(data=data)
 
-        try:
-            self.artists_: List[Dict] = (
-                list(
-                    map(
-                        lambda artist: YTMUSIC.get_artist(artist.get("id"))
-                        if "tracks" not in artist
-                        else artist,
-                        data.get("artists", []),
-                    )
+        self.artists_: List[Union[Dict, str]] = (
+            list(
+                map(
+                    lambda artist: artist.get("id")
+                    if "tracks" not in artist
+                    else artist,
+                    data.get("artists", []),
                 )
-                if "artists" in data
-                else [YTMUSIC.get_artist(data.get("channelId", str()))]
             )
-        except (KeyError, ValueError, AttributeError):
-            Artist_ = NamedTuple(
-                "Artist_",
-                [
-                    ("name", str),
-                    ("images", List[Image])
-                ]
-            )
-            self.artists_ = [
-                Artist_(
-                    data.get('author'),
-                    [Image(**image) for image in data.get('thumbnail', {}).get('thumbnails')]
-                )
-            ]
+            if "artists" in data
+            else [YTMUSIC.get_artist(data.get("channelId", str()))]
+        )
+        # except (KeyError, ValueError, AttributeError):
+        #     Artist_ = NamedTuple(
+        #         "Artist_",
+        #         [
+        #             ("name", str),
+        #             ("images", List[Image])
+        #         ]
+        #     )
+        #     self.artists_ = [
+        #         Artist_(
+        #             data.get('author'),
+        #             [Image(**image) for image in data.get('thumbnail', {}).get('thumbnails')]
+        #         )
+        #     ]
 
         self.album_: Union[Dict, str] = (
             data.get("album", {}).get("id") if "album" in data
             else kwargs.get("album", {})
         )
 
-        self.id: str = data.get("videoId", kwargs.get("track_id", None))  # pylint: disable=invalid-name
+        self.id: str = data.get("videoId", kwargs.get("track_id", str()))  # pylint: disable=invalid-name
         self.name: str = data.get("title", str())
         self.href: str = "https://music.youtube.com/watch?v=" + self.id
         self.uri: str = f"ytmusic:track:{self.id}"
@@ -101,6 +100,21 @@ class Track(Video, URIBase):
 
     def __str__(self) -> str:
         return str(self.id)
+
+    @property
+    def artists(self) -> List["ytmusic.Artist"]:
+        """Get a list of all Artists from the track"""
+        from .artist import Artist
+
+        for idx, artist in enumerate(self.artists_.copy()):
+            if artist:
+                if isinstance(artist, str):
+                    artist = YTMUSIC.get_artist(artist)
+                if isinstance(artist, dict):
+                    artist = Artist(artist)
+                self.artists_.insert(idx, artist)
+                del self.artists_[idx + 1]
+        return self.artists_
 
     @property
     def album(self) -> "ytmusic.Album":

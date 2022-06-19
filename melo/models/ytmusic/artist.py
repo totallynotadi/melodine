@@ -1,4 +1,5 @@
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
+from typing_extensions import Self
 
 from ...models import ytmusic  # pylint: disable=unused-import
 from ...utils import YTMUSIC, Image, URIBase
@@ -34,41 +35,67 @@ class Artist(URIBase):
         "images"
     ]
 
-    def __init__(self, *args, **kwargs) -> None:
-        self._data: Union[str, dict] = str()
-        if (len(args) > 0 and isinstance(args[0], dict)) or 'data' in kwargs:
-            self._data = kwargs['data'] if 'data' in kwargs else args[0]
-            if 'artist' in self._data:
-                self._data = YTMUSIC.get_artist(self._data.get('browseId'))
-        elif (len(args) > 0 and isinstance(args[0], str)) or 'artist_id' in kwargs:
-            _id = kwargs['artist_id'] if 'artist_id' in kwargs else args[0]
-            self._data = YTMUSIC.get_artist(_id)
+    data: Union[Dict, str] = str()
 
-        self.id = self._data.get('channelId', str())  # pylint: disable=invalid-name
+    def __new__(cls: Self, data: Union[Dict, str]) -> Self:
+        if isinstance(data, str):
+            try:
+                data = YTMUSIC.get_artist(data)
+                cls.data = data
+                return super().__new__(cls)
+            except (KeyError, ValueError):
+                from .user import User
+                return User(data)
+        return super().__new__(cls)
+
+    def __init__(self, data: Union[Dict, str]) -> None:
+        # self._data: Union[str, dict] = str()
+        # if (len(args) > 0 and isinstance(args[0], dict)) or 'data' in kwargs:
+        #     self._data = kwargs['data'] if 'data' in kwargs else args[0]
+        #     if 'songs' not in self._data:
+        #         if 'browseId' in self._data:
+        #             self._data = YTMUSIC.get_artist(self._data.get('browseId'))
+        #         else:
+        #             self._data = YTMUSIC.get_user(self._data.get('id'))
+        # elif (len(args) > 0 and isinstance(args[0], str)) or 'artist_id' in kwargs:
+        #     _id = kwargs['artist_id'] if 'artist_id' in kwargs else args[0]
+        #     self._data = YTMUSIC.get_artist(_id)
+
+        if isinstance(data, str):
+            self._data = YTMUSIC.get_artist(data)
+        elif 'songs' not in data:
+            artist_id = data.get('browseId', data.get(
+                'id', data.get('channelId')))
+            self._data = YTMUSIC.get_artist(artist_id)
+        if self.data:
+            self._data = self.data
+
+        # super().__init__(data=self._data)
+
+        self.id = self._data.get(  # pylint: disable=invalid-name
+            'channelId', str())
         self.name = self._data.get('name', str())
         self.href = f'https://music.youtube.com/channel/{self.id}'
         self.uri = f'ytmusic:artist:{self.id}'
-        
+
         self._singles = self._data.get('singles', {}).get('results', [])
-        # doesn't have the 'type' property in the album abjects
+        self._songs = self._data.get('songs', {}).get('results', {})
+        self._videos = self._data.get('videos', {}).get('results', {})
+
         self._albums = self._data.get('albums', {}).get('results', [])
-        # self._albums = YTMUSIC.get_artist_albums(                          # has the 'type' property in the album abjects
-        #     channelId=self._data.get('albums', {}).get('channelId', None), # also try 'browseId instead of channelId
+        # self._all_albums = YTMUSIC.get_artist_albums(
+        #     channelId=self._data.get('albums', {}).get('channelId', None),
         #     params=self._data.get('albums', {}).get('params', None)
         # )
         self._albums.extend(self._singles)
-        self._songs = self._data.get('songs', {}).get('results', {})
-        self._videos = self._data.get('videos', {}).get('results', {})
-        
+
+        self.params = self._data.get('singles', {}).get('params', str())
         self.images = [
             Image(**image) for image in self._data.get('thumbnails', [])
         ]
 
     def __repr__(self) -> str:
-        return f"melo.Artist - {(self.name or self.id or self.uri)!r}"
-
-    def __str__(self) -> str:
-        return str(self.id)
+        return f"<melo.Artist - {(self.name or self.id or self.uri)!r}>"
 
     def get_singles(self):
         '''get list of artist singles'''
@@ -147,6 +174,6 @@ class Artist(URIBase):
             A list of similar artists.
         '''
         return [
-            Artist(artist_id=artist['browseId'])
+            Artist(artist['browseId'])
             for artist in self._data.get('related', {}).get('results', list())
         ]

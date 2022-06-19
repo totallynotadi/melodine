@@ -147,6 +147,7 @@ class URIBase:
     '''
 
     uri = repr(None)
+    id = repr(None)
 
     def __hash__(self):
         return hash(self.uri)
@@ -158,6 +159,9 @@ class URIBase:
 
     def __ne__(self, __o: object) -> bool:
         return not self.__eq__(__o)
+
+    def __bool__(self):
+        return not not self.id
 
     def __str__(self) -> str:
         return self.uri

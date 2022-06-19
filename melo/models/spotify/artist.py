@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 from ...utils import SPOTIFY, Image, URIBase
 
@@ -28,7 +28,7 @@ class Artist(URIBase):
         "_albums",
     )
 
-    def __init__(self, data):
+    def __init__(self, data: Dict):
         self.id = data.get('id')  # pylint: disable=invalid-name
         self.uri = data.get('uri', None)
         self.href = data.get('external_urls').get('spotify', None)

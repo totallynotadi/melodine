@@ -1,4 +1,8 @@
-from typing import List, Optional
+from ast import Dict
+from typing import List, Optional, Union
+
+from .artist import Artist
+from .user import User
 
 from ...utils import YTMUSIC, Image, URIBase
 from .track import Track
@@ -14,21 +18,19 @@ class Playlist(URIBase):
         "href",
         "uri",
         "description",
-        "author",
+        "_author",
         "track_count",
         "_tracks",
         "suggestions_token",
         "images"
     ]
 
-    def __init__(self, *args, **kwargs) -> None:
-        if (len(args) > 0 and isinstance(args[0], dict)) or 'data' in kwargs:
-            data = kwargs['data'] if 'data' in kwargs else args[0]
-            if 'tracks' not in data:
-                data = YTMUSIC.get_playlist(data.get('browseId'))
-        elif (len(args) > 0 and isinstance(args[0], str)) or 'playlist_id' in kwargs:
-            _id = kwargs['playlist_id'] if 'playlist_id' in kwargs else args[0]
-            data = YTMUSIC.get_playlist(_id)
+    def __init__(self, data: Union[Dict, str], **kwargs) -> None:
+
+        if isinstance(data, str):
+            data = YTMUSIC.get_playlist(data)
+        if 'tracks' not in data:
+            data = YTMUSIC.get_playlist(data.get('browseId', data.get('playlistId')))
 
         self._data = data
         self.id = data.get('browseId', str())  # pylint: disable=invalid-name
@@ -36,7 +38,7 @@ class Playlist(URIBase):
         self.href = f'https://music.youtube.com/playlist?list={self.id}'
         self.uri = f'ytmusic:playlist:{self.id}'
         self.description = data.get('description', str())
-        self.author = data.get('author', str())
+        self._author = data.get('author', {}).get('id')
         self.track_count = data.get('trackCount', int())
         self._tracks = data.get('tracks', [])
         self.suggestions_token = data.get('suggestions_token', str())
@@ -49,6 +51,14 @@ class Playlist(URIBase):
 
     def __str__(self) -> str:
         return str(self.id)
+
+    @property
+    def author(self) -> Artist:
+        '''Property getter for the author of a playlist'''
+        if isinstance(self._author, Artist) or isinstance(self._author, User):
+            return self._author
+
+        self._author = Artist(self._author)
 
     def get_tracks(
         self,

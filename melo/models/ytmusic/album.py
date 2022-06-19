@@ -70,7 +70,8 @@ class Album(URIBase):
         self._tracks = data.get('tracks')
 
         if 'browseId' not in data:
-            self.id = YTMUSIC.get_album_browse_id(data['audioPlaylistId'])  # pylint: disable=invalid-name
+            self.id = YTMUSIC.get_album_browse_id(
+                data['audioPlaylistId'])  # pylint: disable=invalid-name
         else:
             self.id = data['browseId']  # pylint: disable=invalid-name
         self.name = data.get('title', str())
@@ -83,7 +84,7 @@ class Album(URIBase):
         self.images = list(
             Image(**image) for image in data.get('thumbnails', [])
         )
-    
+
     def __repr__(self) -> str:
         return f"melo.Album - {(self.name or self.id or self.uri)!r}"
 
@@ -99,7 +100,7 @@ class Album(URIBase):
     def artists(self) -> List["Album"]:
         '''A list of all the artists from an album'''
         if not self._artists:
-            self._artists = [Artist(artist_id=artist['id'])
+            self._artists = [Artist(artist['id'])
                              for artist in self._data.get('artists', [])]
         return self._artists
 

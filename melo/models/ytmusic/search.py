@@ -67,15 +67,18 @@ def search(
                 track_index = types.index('track')
                 types.remove('track')
                 types.insert(track_index, 'songs')
+        
+        types_ = [type_+'s' for type_ in types_]
+        print(types_)
 
         results = []
         # print('::from types')
-        for idx, type_ in enumerate(types):
+        for idx, type_ in enumerate(types_):
             # print(f'::limit {((limit // len(types)) + 1) if idx + 1 == len(types) and len(types) % 2 == 1 else (limit // len(types))}')
             # print(f'::type {type_}')
             data = YTMUSIC.search(
                 q,
-                type_,
+                filter=type_,
                 limit=((limit // len(types)) + 1)
                 if idx + 1 == len(types) and len(types) % 2 == 1
                 else (limit // len(types))

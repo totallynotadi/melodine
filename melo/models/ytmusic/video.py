@@ -48,12 +48,14 @@ class Video(URIBase):
         # print(data.keys())
         # print(data)
 
-        self.id: str = data.get('videoId')  # pylint: disable=invalid-name
+        self.id: str = data.get('videoId', data.get('resourceId', {}).get(
+            'videoId', str()))  # pylint: disable=invalid-name
         self.href: str = f'https://music.youtube.com/watch?v={self.id}'
         self.uri: str = f'ytmusic:video:{self.id}'
         self.name: str = data.get('title')
 
-        self.artists_: Union[List[Dict[str, str]], str] = data.get('artists', data.get('channelId'))
+        self.artists_: Union[List[Dict[str, str]], str] = data.get(
+            'artists', data.get('channelId'))
 
         self.images: List[Dict[str, str]] = [
             Image(**image)
@@ -64,11 +66,11 @@ class Video(URIBase):
             )
         ]
 
-        self.duration_: int = data.get('duration_seconds')
+        self.duration_: Union[int, None] = data.get('duration_seconds')
 
         self.url_: str = str()
         self.recs_: List[Dict[str, Any]] = []
-    
+
     def __repr__(self) -> str:
         return f"melo.Video - {(self.name or self.id or self.uri)!r}"
 
@@ -78,13 +80,16 @@ class Video(URIBase):
     @property
     def artists(self) -> List[Artist]:
         '''Get a list of artist for the track or video'''
+        from .user import User
 
         if isinstance(self.artists_, str):
             self.artists_ = [YTMUSIC.get_artist(self.artists_)]
 
         for idx, artist in enumerate(self.artists_):
-            if not isinstance(artist, Artist):
-                self.artists_[idx] = Artist(data=artist)
+            if not (isinstance(artist, (Artist, User))):
+                print(artist)
+                self.artists_[idx] = Artist(artist.get(
+                    'id', artist.get('browseId', artist.get('channelId'))))
         return self.artists_
 
     @property
