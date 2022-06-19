@@ -1,13 +1,21 @@
 from typing import Iterable
 
 from ...utils import SPOTIFY, SearchResults
-from . import Artist, Album, Track, Playlist
+from . import (
+    Artist,
+    Album,
+    Track,
+    Playlist,
+    Show,
+    Episode
+)
 
 
 __all__ = ["search"]
 
-_TYPES = {"artist": Artist, "album": Album, "track": Track, "playlist": Playlist}
-_SEARCH_TYPES = {"artist", "album", "track", "playlist"}
+_TYPES = {"artist": Artist, "album": Album, "track": Track,
+          "playlist": Playlist, "show": Show, "episode": Episode}
+_SEARCH_TYPES = {"artist", "album", "track", "playlist", "show", "episode"}
 
 
 def search(
@@ -28,7 +36,8 @@ def search(
     types_ = set(types)
 
     if not types_.issubset(_SEARCH_TYPES):
-        raise ValueError('Bad queary type! got "%s" expected any of: track, playlist, artist, album' % types_.difference(_SEARCH_TYPES).pop())
+        raise ValueError('Bad queary type! got "%s" expected any of: track, playlist, artist, album' %
+                         types_.difference(_SEARCH_TYPES).pop())
 
     query_type = ",".join(tp.strip() for tp in types)
 

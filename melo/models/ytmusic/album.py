@@ -70,8 +70,8 @@ class Album(URIBase):
         self._tracks = data.get('tracks')
 
         if 'browseId' not in data:
-            self.id = YTMUSIC.get_album_browse_id(
-                data['audioPlaylistId'])  # pylint: disable=invalid-name
+            self.id = YTMUSIC.get_album_browse_id(  # pylint: disable=invalid-name
+                data['audioPlaylistId'])
         else:
             self.id = data['browseId']  # pylint: disable=invalid-name
         self.name = data.get('title', str())

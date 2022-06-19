@@ -62,11 +62,11 @@ SCOPES = '''
             user-library-modify
         '''  # pylint: disable=invalid-name
 
-SPOTIFY = spotipy.Spotify(
+spot = spotipy.Spotify(
     auth_manager=spotipy.SpotifyOAuth(
         scope=SCOPES,
-        client_id="af9f7ca54d384f3ea8b39272c0812e8e",
-        client_secret="4d915d3a5853427b9d98dbdc1fe0df3a",
+        client_id="22e27810dff0451bb93a71beb5e4b70d",
+        client_secret="6254b7703d8540a48b4795d82eae9300",
         redirect_uri="http://localhost:8080/"
     )
 )
