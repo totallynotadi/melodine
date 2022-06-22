@@ -19,7 +19,7 @@ _SEARCH_TYPES = {"artist", "album", "track", "video", "playlist"}
 class YTMSearchResults(SearchResults):
     '''a dataclass of search results
 
-    extends from the base SearchResults class to add some parameters
+    extends from the base SearchResults class to add some parameters specific to YTMusic
 
     Attributes
     ----------
@@ -70,13 +70,10 @@ def search(
             types_ = set(types)
         
         types_ = [type_+'s' for type_ in types_]
-        print(types_)
 
         results = []
-        # print('::from types')
         for idx, type_ in enumerate(types_):
             # print(f'::limit {((limit // len(types)) + 1) if idx + 1 == len(types) and len(types) % 2 == 1 else (limit // len(types))}')
-            # print(f'::type {type_}')
             data = YTMUSIC.search(
                 q,
                 filter=type_,
@@ -85,7 +82,6 @@ def search(
                 else (limit // len(types))
             )
             results.extend(data)
-            print(f'::: {type_}{results}\n\n')
     else:
         results = YTMUSIC.search(q, limit=limit)
 
@@ -94,13 +90,8 @@ def search(
         search_results[search_type + 's'] = []
         for result in results:
             if result['resultType'] == search_type or (result['resultType'] == 'song' and search_type == 'track'):
-                print(result['resultType'], '-', search_type)
-                print(_TYPES[search_type])
-                if result['resultType'] == search_type == 'artist':
-                    print(result)
                 search_results[
                     search_type + 's'
                 ].append(_TYPES[search_type](data=result))
-                # print(search_results)
 
     return YTMSearchResults(**search_results)

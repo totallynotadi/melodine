@@ -16,7 +16,7 @@ class Episode(URIBase):
 
         self.name: str = data.get('name', str())
         self.description: str = data.get('description', str())
-        self.duration: int = data.et('duration', int())
+        self.duration: int = data.get('duration', int())
         self.release_data: datetime = datetime.strptime(
             data.get('release_date', '1000-10-10'), "%Y-%m-%d")
 

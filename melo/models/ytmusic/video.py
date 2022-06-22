@@ -62,7 +62,6 @@ class Video(URIBase):
 
         self.images: List[Dict[str, str]] = [
             Image(**image)
-            # print(image)
             for image in data.get(
                 'thumbnails',
                 data.get('thumbnail') if not 'thumbnails' in data.get('thumbnail', {})

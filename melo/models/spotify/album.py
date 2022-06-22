@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import List, Optional
 
 from ...utils import Image, SPOTIFY, URIBase
@@ -47,7 +48,7 @@ class Album(URIBase):
 
     @property
     def tracks(self):
-        '''a property getter to get all tracks from an album'''
+        '''a property getter to get top tracks from an album'''
         if len(self._tracks) == 0:
             self.get_tracks()
         return self._tracks
@@ -66,6 +67,7 @@ class Album(URIBase):
             self._tracks = list(Track(_track) for _track in data['items'])
         return self._tracks
 
+    @cached_property
     def get_all_tracks(self) -> List[Track]:
         '''get all tracks of an album'''
         offset = 0

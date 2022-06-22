@@ -35,7 +35,6 @@ class Track(Video, URIBase):
         if isinstance(data, str):
             data = YTMUSIC.get_song(data)['videoDetails']
 
-        print(data)
         super().__init__(data=data)
 
         self.artists_: List[Union[Dict, str]] = (

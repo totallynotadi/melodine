@@ -33,7 +33,6 @@ def search(
                 result += data
     else:
         data = spotify.search(q=q, types=types, limit=limit, offset=offset)
-        print(bool(data))
         if not data:
             data = ytmusic.search(q=q, types=types, limit=limit)
         result = data
