@@ -43,9 +43,12 @@ class Video(URIBase):
         'recs_'
     ]
 
-    def __init__(self, data: Dict) -> None:
+    def __init__(self, data: Union[Dict, str]) -> None:
 
-        print(data.keys())
+        if isinstance(data, str):
+            data = YTMUSIC.get_song(data)
+
+        # print(data.keys())
         # print(data)
 
         self.id: str = data.get('videoId', data.get('resourceId', {}).get(  # pylint: disable=invalid-name
@@ -59,6 +62,7 @@ class Video(URIBase):
 
         self.images: List[Dict[str, str]] = [
             Image(**image)
+            # print(image)
             for image in data.get(
                 'thumbnails',
                 data.get('thumbnail') if not 'thumbnails' in data.get('thumbnail', {})
@@ -87,7 +91,7 @@ class Video(URIBase):
 
         for idx, artist in enumerate(self.artists_):
             if not (isinstance(artist, (Artist, User))):
-                print(artist)
+                # print(artist)
                 self.artists_[idx] = Artist(artist.get(
                     'id', artist.get('browseId', artist.get('channelId'))))
         return self.artists_

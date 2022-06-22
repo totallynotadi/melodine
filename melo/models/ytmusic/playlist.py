@@ -30,6 +30,7 @@ class Playlist(URIBase):
         if isinstance(data, str):
             data = YTMUSIC.get_playlist(data)
         if 'tracks' not in data:
+            self.explicit = data.get('isExplicit', False)
             data = YTMUSIC.get_playlist(data.get('browseId', data.get('playlistId')))
 
         self._data = data
@@ -79,8 +80,12 @@ class Playlist(URIBase):
         tracks : List[Tracks]
             The tracks from the playlist
         '''
-
-        return list(Track(track.get('videoId', str())) for track in self._tracks[offset: offset + limit])
+        for idx, track in enumerate(self._tracks[offset : offset + limit]):
+            if not isinstance(track, Track):
+                track = Track(track)
+                self._tracks[idx] = track
+        return self._tracks           
+        # return list(Track(track.get('videoId', str())) for track in self._tracks[offset: offset + limit])
 
     def get_all_tracks(self) -> List[Track]:
         '''Get all the tracks from a playlist
@@ -95,13 +100,9 @@ class Playlist(URIBase):
             A list of all the tracks from the given playlist
         '''
 
-        # print('::: from playlist', self._tracks)
         for idx, track in enumerate(self._tracks):
             if not isinstance(track, Track) and track.get('videoId') is not None:
-                # print(f'::: {idx} - {track.keys()} - {track.get("videoId")}')
-                # if not track['videoId']:
-                    # print(f":::: NO VIDEOID FOUND - {track}")
                 track = Track(track.get('videoId'))
-            self._tracks[idx] = track
+                self._tracks[idx] = track
         return self._tracks 
         # return list(Track(track.get('videoId', str())) for track in self._tracks)

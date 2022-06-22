@@ -1,8 +1,8 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 from typing_extensions import Self
 
 from ...models import ytmusic  # pylint: disable=unused-import
-from ...utils import YTMUSIC, Image, URIBase
+from ...utils import YT, YTMUSIC, Image, URIBase
 
 
 class Artist(URIBase):
@@ -51,21 +51,9 @@ class Artist(URIBase):
         except (KeyError, ValueError):
             return User(data)
         finally:
-            return super().__new__(cls)  #pylint: disable=lost-exception
+            return super().__new__(cls)  # pylint: disable=lost-exception
 
     def __init__(self, data: Union[Dict, str]) -> None:
-        # self._data: Union[str, dict] = str()
-        # if (len(args) > 0 and isinstance(args[0], dict)) or 'data' in kwargs:
-        #     self._data = kwargs['data'] if 'data' in kwargs else args[0]
-        #     if 'songs' not in self._data:
-        #         if 'browseId' in self._data:
-        #             self._data = YTMUSIC.get_artist(self._data.get('browseId'))
-        #         else:
-        #             self._data = YTMUSIC.get_user(self._data.get('id'))
-        # elif (len(args) > 0 and isinstance(args[0], str)) or 'artist_id' in kwargs:
-        #     _id = kwargs['artist_id'] if 'artist_id' in kwargs else args[0]
-        #     self._data = YTMUSIC.get_artist(_id)
-
         if self.data:
             self._data = self.data
         else:
@@ -82,14 +70,11 @@ class Artist(URIBase):
         self._singles = self._data.get('singles', {}).get('results', [])
         self._songs = self._data.get('songs', {}).get('results', {})
         self._videos = self._data.get('videos', {}).get('results', {})
-
+        self._all_videos = []
         self._albums = self._data.get('albums', {}).get('results', [])
-        # self._all_albums = YTMUSIC.get_artist_albums(
-        #     channelId=self._data.get('albums', {}).get('channelId', None),
-        #     params=self._data.get('albums', {}).get('params', None)
-        # )
-        self._albums.extend(self._singles)
+        self._all_albums = []  # fill this later in get_all_albums method to avoid api calls in init
 
+        self._related_artists = data.get('related', {}).get('results', [])
         self.params = self._data.get('singles', {}).get('params', str())
         self.images = [
             Image(**image) for image in self._data.get('thumbnails', [])
@@ -98,16 +83,54 @@ class Artist(URIBase):
     def __repr__(self) -> str:
         return f"<melo.Artist - {(self.name or self.id or self.uri)!r}>"
 
-    def get_singles(self):
+    @property
+    def singles(self) -> List["ytmusic.Album"]:
         '''get list of artist singles'''
         from .album import Album
-        return [Album(data=single) for single in self._singles]
+        for idx, single in enumerate(self._singles):
+            if not isinstance(single, Album):
+                single = Album(single)
+                self._singles[idx] = single
+        return self._singles
+        # return [Album(data=single) for single in self._singles]
 
-    def get_albums(
-        self,
-        limit: Optional[int] = 5,
-        offset: Optional[int] = 0
-    ) -> List["ytmusic.Album"]:
+    @property
+    def videos(self) -> List["ytmusic.Video"]:
+        from .video import Video
+        for idx, video in enumerate(self._videos):
+            if not isinstance(video, Video):
+                video = Video(video)
+                self._videos[idx] = video
+        return self._videos
+
+    def get_all_videos(self) -> List["ytmusic.Video"]:
+        '''Get all videos for an artist
+        
+        Might take extermely long in case an artist's channel has a lot of vidoes
+        '''
+        from .video import Video
+
+        data = {'nextPageToken': '<placeholder>'}
+        uploads_id = 'UU' + self.id[2:]
+
+        while data.get('nextPageToken'):
+            if data['nextPageToken'] == '<placeholder>':
+                data = YT.get_playlist_items(
+                    playlist_id=uploads_id, return_json=True)
+            else:
+                data = YT.get_playlist_items(
+                    playlist_id=uploads_id, page_token=data['nextPageToken'], return_json=True)
+            # print(data['items'][0]['snippet']['thumbnails'])
+            for item in data['items']:
+                item['snippet']['thumbnails'] = list(item['snippet']['thumbnails'].values())
+            self._all_videos += [
+                Video(video['snippet'])
+                for video in data['items']
+            ]
+        return self._all_videos
+
+    @property
+    def albums(self) -> List["ytmusic.Album"]:
         '''Get albums of an artist based on given limit and offset
 
         Parameters
@@ -124,7 +147,12 @@ class Artist(URIBase):
         '''
         from .album import Album
 
-        return [Album(data=album) for album in self._albums[offset: offset + limit]]
+        for idx, album in enumerate(self._albums):
+            if not isinstance(album, Album):
+                album = Album(album)
+                self._albums[idx] = album
+        return self._albums
+        # return [Album(data=album) for album in self._albums[offset: offset + limit]]
 
     def get_all_albums(self) -> List["ytmusic.Album"]:
         '''Fetches all the artists's albums.
@@ -142,10 +170,20 @@ class Artist(URIBase):
         '''
         from .album import Album
 
-        # return [Album(data=album) for album in self._albums]  # construct from data
-        # construct from id
-        return [Album(album_id=album['browseId']) for album in self._albums]
+        if not self._all_albums:
+            self._all_albums = YTMUSIC.get_artist_albums(
+                channelId=self.id,
+                params=self.params
+            )
 
+        for idx, album in enumerate(self._all_albums):
+            if not isinstance(album, Album):
+                album = Album(album)
+                self._all_albums[idx] = album
+        return self._all_albums
+        # return [Album(album) for album in self._albums]
+
+    @property
     def top_tracks(self) -> List["ytmusic.Track"]:
         """Gets an artist's top tracks.
 
@@ -160,9 +198,15 @@ class Artist(URIBase):
         """
         from .track import Track
 
-        return [Track(track) for track in self._songs]
+        for idx, song in enumerate(self._songs):
+            if not isinstance(song, Track):
+                song = Track(song)
+                self._songs[idx] = song
+        return self._songs
+        # return [Track(track) for track in self._songs]
 
-    def get_related_artists(self) -> List["Artist"]:
+    @property
+    def related_artists(self) -> List["Artist"]:
         '''Get a list of similar artist based on a given artist.
 
         Parameters
@@ -174,7 +218,14 @@ class Artist(URIBase):
         artists : List[Artist]
             A list of similar artists.
         '''
-        return [
-            Artist(artist['browseId'])
-            for artist in self._data.get('related', {}).get('results', list())
-        ]
+
+        for idx, artist in enumerate(self._related_artists):
+            if not isinstance(artist, Artist):
+                artist = Artist(artist)
+                self._related_artists[idx] = artist
+        return self._related_artists
+
+        # return [
+        #     Artist(artist['browseId'])
+        #     for artist in self._data.get('related', {}).get('results', list())
+        # ]

@@ -66,8 +66,8 @@ class User(URIBase):
         results = []
         data = {'nextPageToken': '<placeholder>'}
 
-        while not data.get('nextPageToken'):
-            if not data or reset:
+        while  data.get('nextPageToken'):
+            if data['nextPageToken'] == '<placeholder>' or reset:
                 data = YT.get_playlist_items(
                     playlist_id=self.uploads_id, limit=limit, return_json=True)
             else:
@@ -88,7 +88,7 @@ class User(URIBase):
         Might take extremely long time based on the number of videos an artist has.
         (some channels end up having over 100 uploads)
 
-        Use :func:`get_videos instead`
+        Use :func:`get_videos` for paged results instead
         '''
         if len(self._videos) == self.total_uploads:
             return self.videos
@@ -150,5 +150,4 @@ class User(URIBase):
         self._total_playlists = data['pageInfo']['totalResults']
         if data['nextPageToken']:
             return True
-        else:
-            return False
+        return False
