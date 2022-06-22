@@ -80,7 +80,7 @@ class Playlist(URIBase):
             The tracks from the playlist
         '''
 
-        return list(map(lambda track: track if isinstance(track, Track) else Track(track_id=track.get('videoId', str())), self._tracks[offset: offset + limit]))
+        return list(Track(track.get('videoId', str())) for track in self._tracks[offset: offset + limit])
 
     def get_all_tracks(self) -> List[Track]:
         '''Get all the tracks from a playlist
@@ -95,4 +95,13 @@ class Playlist(URIBase):
             A list of all the tracks from the given playlist
         '''
 
-        return list(map(lambda track: track if isinstance(track, Track) else Track(track_id=track.get('videoId', str())), self._tracks))
+        # print('::: from playlist', self._tracks)
+        for idx, track in enumerate(self._tracks):
+            if not isinstance(track, Track) and track.get('videoId') is not None:
+                # print(f'::: {idx} - {track.keys()} - {track.get("videoId")}')
+                # if not track['videoId']:
+                    # print(f":::: NO VIDEOID FOUND - {track}")
+                track = Track(track.get('videoId'))
+            self._tracks[idx] = track
+        return self._tracks 
+        # return list(Track(track.get('videoId', str())) for track in self._tracks)

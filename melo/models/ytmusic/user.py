@@ -11,6 +11,8 @@ class User(URIBase):
         if isinstance(data, str):
             data = YTMUSIC.get_user(data)
 
+        print('got user')
+
         self.id: str = data.get('videos', {}).get(  # pylint: disable=invalid-name
             'browseId', str())
         self.uploads_id: str = 'UU' + self.id[2:]

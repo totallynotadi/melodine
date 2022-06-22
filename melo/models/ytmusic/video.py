@@ -45,11 +45,11 @@ class Video(URIBase):
 
     def __init__(self, data: Dict) -> None:
 
-        # print(data.keys())
+        print(data.keys())
         # print(data)
 
-        self.id: str = data.get('videoId', data.get('resourceId', {}).get(
-            'videoId', str()))  # pylint: disable=invalid-name
+        self.id: str = data.get('videoId', data.get('resourceId', {}).get(  # pylint: disable=invalid-name
+            'videoId', str()))
         self.href: str = f'https://music.youtube.com/watch?v={self.id}'
         self.uri: str = f'ytmusic:video:{self.id}'
         self.name: str = data.get('title')

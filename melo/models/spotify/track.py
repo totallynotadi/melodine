@@ -42,7 +42,7 @@ class Track(URIBase):
         self.href = 'https://open.spotify.com/track/' + self.id
         self.duration = data.get('duration_ms') * 1000
         self.url_ = []
-        
+
         if 'images' in data:
             self.images = [
                 Image(**_image) for _image in data.get('images', [])
@@ -88,7 +88,7 @@ class Track(URIBase):
     ) -> List["Track"]:
 
         ''' get recommendation for a particular track
-        
+
         Returns one Track per call, use the limit parameter to change number of returned tracks.
 
         Parameters
@@ -108,13 +108,13 @@ class Track(URIBase):
 
 class PlaylistTrack(Track):
     '''A playlist track.
-    
+
     same as a normal track, but with some extra attributes
     '''
     __slots__ = ['added_by', 'added_at']
 
     def __init__(self, data, **kwargs) -> None:
-        
+
         super().__init__(data['tracks'])
 
         #TODO - get adding user as an User object

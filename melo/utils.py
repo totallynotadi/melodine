@@ -62,7 +62,7 @@ SCOPES = '''
             user-library-modify
         '''  # pylint: disable=invalid-name
 
-spot = spotipy.Spotify(
+SPOTIFY = spotipy.Spotify(
     auth_manager=spotipy.SpotifyOAuth(
         scope=SCOPES,
         client_id="22e27810dff0451bb93a71beb5e4b70d",
@@ -165,3 +165,10 @@ class URIBase:
 
     def __str__(self) -> str:
         return self.uri
+
+def get_artist(channel_id: str):
+    try:
+        artist = YTMUSIC.get_artist(channel_id)
+    except (ValueError, KeyError):
+        artist = YTMUSIC.get_user(channel_id)
+    return artist

@@ -1,7 +1,7 @@
-from typing import Dict, List, NamedTuple, Union
+from typing import Dict, List, Union
 
 from ...models import ytmusic  # pylint: disable=unused-import
-from ...utils import YT, YTMUSIC, Image, URIBase
+from ...utils import YTMUSIC, Image, URIBase
 from .video import Video
 
 
@@ -31,18 +31,11 @@ class Track(Video, URIBase):
 
     __slots__ = ["album_"]
 
-    def __init__(self, *args, **kwargs) -> None:
-        # so that a ytmusic.Track object can be constructed either from a json response (data) or a ytmusic track's ID
-        # by passing a keyword or a positional argument
-        data: Union[str, dict] = str()
-        if (args and isinstance(args[0], dict)) or "data" in kwargs:
-            data = kwargs["data"] if 'data' in kwargs else args[0]
-            if "artists" not in data or data['artists'][0]['id'] is None:
-                data = YTMUSIC.get_song(data.get("videoId"))['videoDetails']
-        elif (args and isinstance(args[0], str)) or "track_id" in kwargs:
-            _id = kwargs["track_id"] if "track_id" in kwargs else args[0]
-            data = YTMUSIC.get_song(_id)['videoDetails']
+    def __init__(self, data: Union[Dict, str], **kwargs) -> None:
+        if isinstance(data, str):
+            data = YTMUSIC.get_song(data)['videoDetails']
 
+        print(data)
         super().__init__(data=data)
 
         self.artists_: List[Union[Dict, str]] = (
@@ -53,24 +46,9 @@ class Track(Video, URIBase):
                     else artist,
                     data.get("artists", []),
                 )
-            )
-            if "artists" in data
-            else [YTMUSIC.get_artist(data.get("channelId", str()))]
+            ) if "artists" in data 
+            else [data.get("channelId", data.get('browseId', str()))]
         )
-        # except (KeyError, ValueError, AttributeError):
-        #     Artist_ = NamedTuple(
-        #         "Artist_",
-        #         [
-        #             ("name", str),
-        #             ("images", List[Image])
-        #         ]
-        #     )
-        #     self.artists_ = [
-        #         Artist_(
-        #             data.get('author'),
-        #             [Image(**image) for image in data.get('thumbnail', {}).get('thumbnails')]
-        #         )
-        #     ]
 
         self.album_: Union[Dict, str] = (
             data.get("album", {}).get("id") if "album" in data
@@ -108,10 +86,7 @@ class Track(Video, URIBase):
 
         for idx, artist in enumerate(self.artists_.copy()):
             if artist:
-                if isinstance(artist, str):
-                    artist = YTMUSIC.get_artist(artist)
-                if isinstance(artist, dict):
-                    artist = Artist(artist)
+                artist = Artist(artist)
                 self.artists_.insert(idx, artist)
                 del self.artists_[idx + 1]
         return self.artists_
@@ -124,7 +99,7 @@ class Track(Video, URIBase):
         if isinstance(self.album_, str):
             try:
                 self.album_ = YTMUSIC.get_album(self.album_)
-            except (KeyError, ValueError):
+            except (KeyError, ValueError, AttributeError):
                 self.album_ = {}
 
         if not self.album_ or isinstance(self.album_, Album):
@@ -146,26 +121,3 @@ class Track(Video, URIBase):
 
     def test_run():  # pylint: disable=no-method-argument
         return Track(YTMUSIC.search(query="sewerslvt-pretty cvnt", filter="songs")[0])
-
-
-class PlaylistTrack(Track):
-    def __init__(self, data: Dict, **kwargs) -> None:
-
-        super().__init__(data=data)
-
-        self.id = data.get('videoId')  # pylint: disable=invalid-name
-        self.href = f'https://music.youtube.com/watch?v={self.id}'
-        self.uri = f'ytmusic:playlist_track:{self.id}'
-
-        self.name = data.get('title')
-
-        self.album_ = {}
-        self.artist_ = YT.get_channel_info(channel_id=self.id)
-        self.artist = NamedTuple(
-            "Artist",
-            [
-                ("name", data.get('author')),
-                ("images", [Image(**image)
-                 for image in data.get('thumbnail').get('thumbnails')])
-            ]
-        )

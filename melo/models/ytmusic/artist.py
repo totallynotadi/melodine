@@ -37,16 +37,21 @@ class Artist(URIBase):
 
     data: Union[Dict, str] = str()
 
-    def __new__(cls: Self, data: Union[Dict, str]) -> Self:
-        if isinstance(data, str):
-            try:
-                data = YTMUSIC.get_artist(data)
-                cls.data = data
-                return super().__new__(cls)
-            except (KeyError, ValueError):
-                from .user import User
-                return User(data)
-        return super().__new__(cls)
+    def __new__(cls: Self, data: Union[Dict, str]) -> Union[Self, "ytmusic.User"]:
+        from .user import User
+        try:
+            if 'songs' not in data:
+                # TODO - can handle browseId data for simple constructor, implement properties
+                artist_id = data.get('channelId', data.get(
+                    'id', data.get('browseId')))
+            else:
+                artist_id = data
+            cls.data = YTMUSIC.get_artist(artist_id)
+            return super().__new__(cls)
+        except (KeyError, ValueError):
+            return User(data)
+        finally:
+            return super().__new__(cls)  #pylint: disable=lost-exception
 
     def __init__(self, data: Union[Dict, str]) -> None:
         # self._data: Union[str, dict] = str()
@@ -61,14 +66,10 @@ class Artist(URIBase):
         #     _id = kwargs['artist_id'] if 'artist_id' in kwargs else args[0]
         #     self._data = YTMUSIC.get_artist(_id)
 
-        if isinstance(data, str):
-            self._data = YTMUSIC.get_artist(data)
-        elif 'songs' not in data:
-            artist_id = data.get('browseId', data.get(
-                'id', data.get('channelId')))
-            self._data = YTMUSIC.get_artist(artist_id)
         if self.data:
             self._data = self.data
+        else:
+            self._data = data
 
         # super().__init__(data=self._data)
 
@@ -99,7 +100,7 @@ class Artist(URIBase):
 
     def get_singles(self):
         '''get list of artist singles'''
-        from ..ytmusic.album import Album
+        from .album import Album
         return [Album(data=single) for single in self._singles]
 
     def get_albums(

@@ -125,7 +125,7 @@ class Album(URIBase):
             A list of tracks retrieved from the album
         """
         return list(map(
-            lambda track: Track(track_id=track.get(
+            lambda track: Track(track.get(
                 'videoId', str()), album=self._data)
             if not isinstance(track, Track) else track, self._tracks[offset: offset + limit]
         ))
@@ -143,7 +143,7 @@ class Album(URIBase):
             A list of all the tracks from the album
         '''
         return list(map(
-            lambda track: Track(track_id=track.get(
+            lambda track: Track(track.get(
                 'videoId', str()), album=self._data)
             if not isinstance(track, Track) else track, self._tracks
         ))

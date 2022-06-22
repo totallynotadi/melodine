@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from typing import Dict, List, Union
 
-from melo.models.spotify.episode import Episode
-
 from ...utils import SPOTIFY, Image, URIBase
+from .episode import Episode
 
 
 @dataclass

@@ -6,8 +6,8 @@ from . import (
     Album,
     Track,
     Playlist,
-    Show,
-    Episode
+    Episode,
+    Show
 )
 
 
@@ -21,14 +21,14 @@ _SEARCH_TYPES = {"artist", "album", "track", "playlist", "show", "episode"}
 def search(
     q: str,  # pylint: disable=invalid-name
     *,
-    types: Iterable[str] = ("track", "playlist", "artist", "album"),
+    types: Iterable[str] = ("track", "playlist", "artist", "album", "show", "episode"),
     limit: int = 20,
     offset: int = 0,
 ) -> SearchResults:
     '''Get search results for a query'''
 
     if types is None:
-        types = ("track", "playlist", "artist", "album")
+        types = ("track", "playlist", "artist", "album", "show", "episode")
 
     if not hasattr(types, "__iter__"):
         raise TypeError("types must be an iterable.")
