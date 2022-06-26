@@ -45,7 +45,7 @@ class Track(Video, URIBase):
                     else artist,
                     data.get("artists", []),
                 )
-            ) if "artists" in data 
+            ) if "artists" in data
             else [data.get("channelId", data.get('browseId', str()))]
         )
 
@@ -58,6 +58,7 @@ class Track(Video, URIBase):
         self.name: str = data.get("title", str())
         self.href: str = "https://music.youtube.com/watch?v=" + self.id
         self.uri: str = f"ytmusic:track:{self.id}"
+        self.is_explicit: bool = data.get('isExplicit', False)
 
         self.images: List[Image] = [
             Image(**image)
@@ -74,9 +75,6 @@ class Track(Video, URIBase):
 
     def __repr__(self) -> str:
         return f"melo.Track - {(self.name or self.id or self.uri)!r}"
-
-    def __str__(self) -> str:
-        return str(self.id)
 
     @property
     def artists(self) -> List["ytmusic.Artist"]:
@@ -111,11 +109,10 @@ class Track(Video, URIBase):
     def get_recommendations(self, limit: int = 1) -> List["Track"]:
         """Get recommendations for this particular tracksd"""
         if not self.recs_:
-            self.recs_ = YTMUSIC.get_watch_playlist(self.id, f"RDAMVM{self.id}")[
-                "tracks"
-            ]
+            self.recs_ = YTMUSIC.get_watch_playlist(self.id, f"RDAMVM{self.id}")["tracks"]
 
         recs: List[Dict] = self.recs_[:limit]
+        del self.recs_[:limit]
         return [Track(track) for track in recs]
 
     def test_run():  # pylint: disable=no-method-argument

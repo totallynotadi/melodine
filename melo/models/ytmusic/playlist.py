@@ -1,11 +1,9 @@
-from ast import Dict
-from typing import List, Optional, Union
-
-from .artist import Artist
-from .user import User
+from typing import Dict, List, Optional, Union
 
 from ...utils import YTMUSIC, Image, URIBase
+from .artist import Artist
 from .track import Track
+from .user import User
 
 
 class Playlist(URIBase):
@@ -39,7 +37,8 @@ class Playlist(URIBase):
         self.href = f'https://music.youtube.com/playlist?list={self.id}'
         self.uri = f'ytmusic:playlist:{self.id}'
         self.description = data.get('description', str())
-        self._author = data.get('author', {}).get('id')
+        # self._author = data.get('author', {}).get('id')
+        self._owner = data.get('author', {}).get('id')
         self.track_count = data.get('trackCount', int())
         self._tracks = data.get('tracks', [])
         self.suggestions_token = data.get('suggestions_token', str())
@@ -54,12 +53,12 @@ class Playlist(URIBase):
         return str(self.id)
 
     @property
-    def author(self) -> Artist:
+    def owner(self) -> Union[Artist, User]:
         '''Property getter for the author of a playlist'''
-        if isinstance(self._author, Artist) or isinstance(self._author, User):
-            return self._author
+        if isinstance(self._owner, (Artist, User)):
+            return self._owner
 
-        self._author = Artist(self._author)
+        self._owner = Artist(self._owner)
 
     def get_tracks(
         self,

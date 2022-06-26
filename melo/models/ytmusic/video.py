@@ -97,13 +97,17 @@ class Video(URIBase):
 
     @property
     def url(self) -> str:
-        '''Get the playback URL for a track or video'''
+        '''Get the playback URL for a track or video
+
+        retrieves the higest quality adaptive track by default
+        '''
         if self.url_:
             return self.url_
 
         innertube = InnerTube()
         video_info = innertube.player(self.id)
         self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
+
         return self.url_
 
     @property
