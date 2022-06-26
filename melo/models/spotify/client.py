@@ -1,14 +1,33 @@
+from dataclasses import dataclass
 from functools import cached_property
-from typing import List, Literal, Optional
-
-from melo.models.spotify.episode import Episode
+from typing import Dict, List, Literal, Optional
+from typing_extensions import Self
 
 from ...utils import SPOTIFY, Image, URIBase
-from .artist import Artist
 from .album import Album
+from .artist import Artist
+from .episode import Episode
 from .player import Player
 from .playlist import Playlist
+from .show import Show
 from .track import PlaylistTrack, Track
+
+
+@dataclass
+class Category:
+    def __init__(self, data: Dict) -> None:
+        self.id = data.get('id')  #pylint: disable=invalid-name
+        self.name = data.get('name')
+        self.images = [Image(**image) for image in data.get('icons')]
+
+    @classmethod
+    def from_id(cls, category_id: str) -> Self:
+        category_data = SPOTIFY.category(category_id)
+        return cls(category_data)
+
+    def get_playlist(self) -> List[Playlist]:
+        data = SPOTIFY.category_playlists(self.id)
+        return [Playlist(playlist) for playlist in data['playlists']['items']]
 
 
 class Client(URIBase):
@@ -38,7 +57,20 @@ class Client(URIBase):
         data = SPOTIFY.current_user_recently_played(limit=limit)
         return [Track(track_) for track_ in data.get('track', {})]
 
-    def saved_artists(
+    def featured_playlist(self) -> List[Playlist]:
+        data = SPOTIFY.featured_playlists()
+        return [Playlist(playlist) for playlist in data['playlists']['items']]
+
+    def new_releases(self):
+        data = SPOTIFY.new_releases()
+        return [Album(album) for album in data['albums']['items']]
+
+    @cached_property
+    def categories(self):
+        data = SPOTIFY.categories()
+        return [Category(category) for category in data['categories']['items']]
+
+    def followed_artists(
         self,
         *,
         limit: Optional[int] = 20,
@@ -47,7 +79,7 @@ class Client(URIBase):
         return [Artist(artist) for artist in data['artists']['items']]
 
     @cached_property
-    def all_saved_artists(self) -> List[Artist]:
+    def all_followed_artists(self) -> List[Artist]:
         data = {'next': '<placeholder>'}
         results = []
 
@@ -156,6 +188,27 @@ class Client(URIBase):
                 data = SPOTIFY.next(data)
             results += data['items']
         return [Episode(episode['episode']) for episode in results]
+
+    def saved_shows(
+        self,
+        *,
+        limit: Optional[int] = 20,
+        offset: Optional[int] = 0
+    ) -> List[Show]:
+        data = SPOTIFY.current_user_saved_shows(limit=limit, offset=offset)
+        return [Show(show['show']) for show in data['items']]
+
+    def all_saved_shows(self) -> List[Show]:
+        data = {'next': '<placeholder>'}
+        results = []
+
+        while data.get('next'):
+            if data['next'] == '<placeholder>':
+                data = SPOTIFY.current_user_saved_shows()
+            else:
+                data = SPOTIFY.next(data)
+            results += data['items']
+        return [Show(show['show']) for show in results]
 
     def top_artists(
         self,
