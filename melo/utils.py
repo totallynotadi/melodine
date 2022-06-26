@@ -51,16 +51,18 @@ YTDL = YoutubeDL({
 
 # user-follow-modify
 SCOPES = '''
-            user-read-currently-playing
             user-read-playback-state
             user-follow-read
             playlist-read-private
             playlist-read-collaborative
             playlist-modify-private
             playlist-modify-public
+            user-read-recently-played
             user-library-read
             user-library-modify
-        '''  # pylint: disable=invalid-name
+            user-top-read
+            user-read-private
+        ''' # pylint: disable=invalid-name
 
 SPOTIFY = spotipy.Spotify(
     auth_manager=spotipy.SpotifyOAuth(
@@ -127,6 +129,7 @@ class SearchResults:
                 self.__setattr__(attr, val)
             else:
                 self.__setattr__(attr, self.__getattribute__(attr).extend(val))
+        return self
 
     def __bool__(self):
         return any(self.__dict__.values())
@@ -165,10 +168,3 @@ class URIBase:
 
     def __str__(self) -> str:
         return self.uri
-
-def get_artist(channel_id: str):
-    try:
-        artist = YTMUSIC.get_artist(channel_id)
-    except (ValueError, KeyError):
-        artist = YTMUSIC.get_user(channel_id)
-    return artist
