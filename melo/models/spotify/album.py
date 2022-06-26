@@ -77,3 +77,18 @@ class Album(URIBase):
             offset += 50
             self.tracks += list(Track(track, album=self._data) for track in data['items'])
         return self.tracks
+
+    def saved(self) -> bool:
+        ''' Check if one or more albums is already saved in
+            the current Spotify user’s “Your Music” library.
+        '''
+        return SPOTIFY.current_user_saved_albums_contains([self.id])[0]
+
+    def save_album(self) -> None:
+        '''Add one or more albums to the current user's
+            "Your Music" library.
+        '''
+        return SPOTIFY.current_user_saved_albums_add([self.id])
+
+    def unsave_album(self):
+        return SPOTIFY.current_user_saved_albums_delete([self.id])

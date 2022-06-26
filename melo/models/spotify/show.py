@@ -23,6 +23,9 @@ class Show(URIBase):
             Image(**image) for image in data.get('images', [])
         ]
 
+    def __repr__(self) -> str:
+        return f'<spotify.Show: {self.name!r}>'
+
     @property
     def episodes(
         self,
@@ -56,3 +59,12 @@ class Show(URIBase):
             offset += 10
 
         return result
+
+    def is_saved(self) -> bool:
+        return SPOTIFY.current_user_saved_shows_contains([self.id])[0]
+
+    def save_show(self) -> None:
+        return SPOTIFY.current_user_saved_shows_add([self.id])
+
+    def unsave_show(self) -> None:
+        return SPOTIFY.current_user_saved_shows_delete([self.id])

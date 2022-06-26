@@ -1,14 +1,18 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
-from .track import PlaylistTrack
-from .user import User
+from melo.models import spotify
+
 from ...utils import SPOTIFY, Image, URIBase
+from .track import PlaylistTrack, Track
 
-class Playlist(URIBase): #pylint: disable=too-many-instance-attributes
+
+class Playlist(URIBase):  # pylint: disable=too-many-instance-attributes
     '''A Spotify playlist object'''
-    def __init__(self, data: Dict) -> None:
 
-        self.id: str = data.get('id') #pylint: disable=invalid-name
+    def __init__(self, data: Dict) -> None:
+        from .user import User
+
+        self.id: str = data.get('id')  # pylint: disable=invalid-name
 
         self.name: str = data.get('name')
         self.owner: User = User(data.get('owner'))
@@ -58,12 +62,13 @@ class Playlist(URIBase): #pylint: disable=too-many-instance-attributes
         '''
 
         if (offset + limit) < self.total_tracks:
-            return [PlaylistTrack(track_) for track_ in self.tracks[offset : offset + limit]]
+            return [PlaylistTrack(track_) for track_ in self.tracks[offset: offset + limit]]
 
+        #TODO - Use multi-type results with playlist items (it returns episodes as well)
         data = SPOTIFY.playlist_tracks(
             self.id,
             limit=limit,
-            offset=offset 
+            offset=offset
         )
 
         return [PlaylistTrack(track_) for track_ in data['items']]
@@ -83,8 +88,8 @@ class Playlist(URIBase): #pylint: disable=too-many-instance-attributes
         while len(self.tracks) < self.total_tracks:
             data = SPOTIFY.playlist_tracks(
                 self.id,
-                limit = 50,
-                offset = offset
+                limit=50,
+                offset=offset
             )
 
             self.tracks.extend([PlaylistTrack(track_) for track_ in data])
@@ -93,4 +98,31 @@ class Playlist(URIBase): #pylint: disable=too-many-instance-attributes
         self.total_tracks = len(self.tracks)
         return self.tracks
 
-    #TODO - implement scopes and playlist modifications
+    def add_items(self, items: List[Union[Track, "spotify.Episode", str]]) -> None:
+        from .episode import Episode
+
+        items = list(
+            map(
+                lambda item: item.id if isinstance(item, (Track, Episode))
+                else item,
+                items
+            )
+        )
+        SPOTIFY.playlist_add_items(self.id, items=items)
+        if len(self.tracks) == self.total_tracks:
+            self.tracks.extend(items)
+        self.total_tracks += len(items)
+
+    def saved(self) -> bool:
+        from .client import client
+
+        return SPOTIFY.playlist_is_following(self.id, client.id)
+
+    def save_playlist(self) -> None:
+        '''Add the current user as the follower of this playlist'''
+        SPOTIFY.current_user_follow_playlist(self.id)
+
+    def unsave_playlist(self) -> None:
+        return SPOTIFY.current_user_unfollow_playlist(self.id)
+
+    # TODO - implement scopes and playlist modifications

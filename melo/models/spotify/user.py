@@ -1,8 +1,8 @@
-from typing import Dict, List, Literal, Optional
+from functools import cached_property
+from typing import Dict, List, Optional
 
 from ...utils import SPOTIFY, Image, URIBase
-from . import Artist, Track
-from .player import Player
+from .playlist import Playlist
 
 
 class User(URIBase):
@@ -13,48 +13,54 @@ class User(URIBase):
         self.uri = data.get('uri')
         self.followers = data.get('followers')
         self.type = data.get('type')
-        self.images = [Image(**image_) for image_ in data.get('images', [])]
+        self._images = [Image(**image_) for image_ in data.get('images', [])]
 
     def __repr__(self):
         return f"<spotify.User: {(self.name or self.id)!r}>"
 
-    def currently_playing(self) -> Track:
-        data = SPOTIFY.current_user_playing_track()
-        return Track(data['item'])
+    @property
+    def images(self):
+        '''thumbnails for a user's profile'''
+        if self._images:
+            return self._images
 
-    def current_playback(self) -> Player:
-        return Player(SPOTIFY.current_playback(), self)
+        data = SPOTIFY.user(self.id)
+        self._images = [Image(**image) for image in data.get('images', [])]
+        return self._images
 
-    def recently_played(self, limit: int = 20) -> List[Track]:
-        data = SPOTIFY.current_user_recently_played(limit=limit)
-        return [Track(track_) for track_ in data.get('track', {})]
-
-    def top_artist(
+    def user_playlists(
         self,
-        limit: Optional[int] = 20,
-        offset: Optional[int] = 0,
-        time_range: Literal['long_term', 'short_term', 'medium_term'] = 'medium_term'
-    ) -> List[Artist]:
-
-        data = SPOTIFY.current_user_top_artists(
+        limit: Optional[int] = 30,
+        offset: Optional[int] = 0
+    ) -> List[Playlist]:
+        '''Get a user's playlists'''
+        data = SPOTIFY.user_playlists(
+            self.id,
             limit=limit,
-            offset=offset,
-            time_range=time_range
+            offset=offset
         )
 
-        return [Artist(artist_) for artist_ in data['items']]
+        return [Playlist(playlist) for playlist in data.get('items', [])]
 
-    def top_track(
-        self,
-        limit: Optional[int] = 20,
-        offset: Optional[int] = 0,
-        time_range: Literal['long_term', 'short_term', 'medium_term'] = 'medium_term'
-    ) -> List[Track]:
+    @cached_property
+    def all_user_playlists(self) -> List[Playlist]:
+        '''Get all playlists from a user'''
+        data = {'next': '<placeholder>'}
+        results = []
 
-        data = SPOTIFY.current_user_top_tracks(
-            limit=limit,
-            offset=offset,
-            time_range=time_range
-        )
+        while data.get('next'):
+            if data['next'] == '<placeholder>':
+                data = SPOTIFY.user_playlists(self.id)
+            else:
+                data = SPOTIFY.next(data)
+            results += data['items']
+        return [Playlist(playlist) for playlist in data]
 
-        return [Track(track_) for track_ in data['items']]
+    def is_followed(self) -> bool:
+        return SPOTIFY.current_user_following_users([self.id])[0]
+
+    def follow_user(self) -> None:
+        return SPOTIFY.user_follow_users([self.id])
+
+    def unfollow_user(self) -> None:
+        return SPOTIFY.user_unfollow_users([self.id])

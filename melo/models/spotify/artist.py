@@ -91,3 +91,12 @@ class Artist(URIBase):
     def get_related_artists(self):
         related = SPOTIFY.artist_related_artists(self.id)
         return list(Artist(artist) for artist in related['artists'])
+
+    def is_followed(self) -> bool:
+        return SPOTIFY.current_user_following_artists([self.id])
+
+    def follow_artist(self) -> None:
+        return SPOTIFY.user_follow_artists([self.id])
+
+    def unfollow_artist(self) -> None:
+        return SPOTIFY.user_unfollow_artists([self.id])

@@ -1,5 +1,8 @@
 import datetime
 from typing import List, Optional
+from typing_extensions import Self
+
+from .episode import Episode
 
 from ...innertube import InnerTube
 from ...utils import SPOTIFY, YTMUSIC, Image, URIBase
@@ -27,6 +30,12 @@ class Track(URIBase):
         "images"
     ]
 
+    def __new__(cls: Self, data, **kwargs) -> Self:
+        # for some cases when a result contains an episode
+        if data.get('episode'):
+            return Episode(data)
+        return super().__new__(cls)
+
     def __init__(self, data, **kwargs) -> None:
         from .album import Album
 
@@ -34,29 +43,34 @@ class Track(URIBase):
             Artist(_artist) for _artist in data.get('artists', [])
         )
 
-        self.album = Album(data.get('album', {})) if 'album' in data else kwargs.get('album', {})
+        self.album = Album(data.get('album', {})
+                           ) if 'album' in data else kwargs.get('album', {})
 
-        self.id = data.get('id', None) #pylint: disable=invalid-name
+        self.id = data.get('id', None)  # pylint: disable=invalid-name
         self.name = data.get('name', None)
         self.uri = data.get('uri', None)
         self.href = 'https://open.spotify.com/track/' + self.id
         self.duration = data.get('duration_ms') * 1000
+        self.explicit = data.get('explicit', False)
         self.url_ = []
 
         if 'images' in data:
             self.images = [
-                Image(**_image) for _image in data.get('images', [])
+                Image(**image) for image in data.get('images', [])
             ]
         else:
             self.images = self.album.images.copy()
 
+        self._audio_analysis = {}
+        self._audio_features = {}
+
     def __repr__(self) -> str:
-        return f"melo.Trackt - {(self.name or self.id or self.uri)!r}"
+        return f"<melo.Track - {(self.name or self.id or self.uri)!r}>"
 
     def __str__(self) -> str:
         return str(self.id)
 
-    def test_run(): #pylint: disable=no-method-argument
+    def test_run():  # pylint: disable=no-method-argument
         return Track(SPOTIFY.search('ritchrd - paris', type='track')['tracks']['items'][0])
 
     @property
@@ -66,7 +80,8 @@ class Track(URIBase):
         if self.url_:
             return self.url_
 
-        video_id = YTMUSIC.search(f"{self.artists[0].name} - {self.name}", filter='songs')[0]['videoId']
+        video_id = YTMUSIC.search(
+            f"{self.artists[0].name} - {self.name}", filter='songs')[0]['videoId']
 
         # for ID of the top search results which could be a video (that's not implemented yet)
         # video_id = YTMUSIC.search(f"{self.artists[0].name} - {self.name}")[0]['videoId']
@@ -86,7 +101,6 @@ class Track(URIBase):
         self,
         limit: Optional[int] = 1
     ) -> List["Track"]:
-
         ''' get recommendation for a particular track
 
         Returns one Track per call, use the limit parameter to change number of returned tracks.
@@ -105,6 +119,38 @@ class Track(URIBase):
 
         return [Track(rec) for rec in recs['tracks']]
 
+    def audio_analysis(self):
+        '''get audio analysis for a track based on spotify community's listening patterns'''
+        if self._audio_analysis:
+            return self._audio_analysis
+
+        self._audio_analysis = SPOTIFY.audio_analysis(self.id)
+        return self._audio_analysis
+
+    def audio_features(self):
+        '''get audio features for a track based on spotify community's listening patterns'''
+        if self._audio_features:
+            return self._audio_features
+
+        self._audio_analysis = SPOTIFY.audio_features(self.id)
+        return self.audio_features
+
+    def add_to_playlist(self, playlist_id) -> None:
+        '''Add the track to a spotify playlist'''
+        SPOTIFY.playlist_add_items(
+            playlist_id=playlist_id,
+            items=[self.id]
+        )
+
+    def is_saved(self) -> bool:
+        return SPOTIFY.current_user_saved_tracks_contains([self.id])[0]
+
+    def save_track(self) -> None:
+        return SPOTIFY.current_user_saved_tracks_add([self.id])
+
+    def unsave_track(self) -> None:
+        return SPOTIFY.current_user_saved_tracks_delete([self.id])
+
 
 class PlaylistTrack(Track):
     '''A playlist track.
@@ -114,11 +160,12 @@ class PlaylistTrack(Track):
     __slots__ = ['added_by', 'added_at']
 
     def __init__(self, data, **kwargs) -> None:
+        from .client import Client
+        from .user import User
 
-        super().__init__(data['tracks'])
+        super().__init__(data['track'])
 
-        #TODO - get adding user as an User object
-        self.added_by = data.get('added_by')
+        self.added_by = User(data.get('added_by')) if not isinstance(data.get('added_by'), (Client, User)) else data.get('added_by')
         self.added_at = datetime.datetime.strptime(
             data["added_at"], "%Y-%m-%dT%H:%M:%SZ"
         )
