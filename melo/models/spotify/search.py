@@ -39,6 +39,7 @@ class SpotifySearchResults(SearchResults):
     '''
 
     shows: Optional[List] = field(default_factory=list)
+    episodes: Optional[List] = field(default_factory=list)
 
 
 def search(
