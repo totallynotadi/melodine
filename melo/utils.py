@@ -1,40 +1,16 @@
-from dataclasses import dataclass, field
 import json
+import os
+from dataclasses import dataclass, field
 from typing import List, Optional
 
+import appdirs
 import pyyoutube
 import spotipy
 from youtube_dl import YoutubeDL
 from ytmusicapi import YTMusic
 
-
-class Image:
-    """
-    An object representing a Spotify image resource.
-
-    Attributes
-    ----------
-    height : :class:`str`
-        The height of the image.
-    width : :class:`str`
-        The width of the image.
-    url : :class:`str`
-        The URL of the image.
-    """
-
-    __slots__ = ("height", "width", "url")
-
-    def __init__(self, *, height: str, width: str, url: str):
-        self.height = height
-        self.width = width
-        self.url = url
-
-    def __repr__(self):
-        return f"<melo.Image: {self.url!r} (width: {self.width!r}, height: {self.height!r})>"
-
-    def __eq__(self, other):
-        return type(self) is type(other) and self.url == other.url
-
+APP_DIR = os.path.join(appdirs.user_data_dir(), '.melo')
+CACHE_PATH = os.path.join(appdirs.user_data_dir(), '.melo', 'spotify_cache')
 
 YT = pyyoutube.Api(api_key='AIzaSyCq47Zxsu4pN1MMWBNa04380TGDxT7hrQM')
 
@@ -49,10 +25,10 @@ YTDL = YoutubeDL({
     'quiet': True
 })
 
-# user-follow-modify
 SCOPES = '''
             user-read-playback-state
             user-follow-read
+            user-follow-modify
             playlist-read-private
             playlist-read-collaborative
             playlist-modify-private
@@ -62,16 +38,27 @@ SCOPES = '''
             user-library-modify
             user-top-read
             user-read-private
-        ''' # pylint: disable=invalid-name
+        '''  # pylint: disable=invalid-name
 
-SPOTIFY = spotipy.Spotify(
-    auth_manager=spotipy.SpotifyOAuth(
-        scope=SCOPES,
-        client_id="22e27810dff0451bb93a71beb5e4b70d",
-        client_secret="6254b7703d8540a48b4795d82eae9300",
-        redirect_uri="http://localhost:8080/"
+if os.path.exists(CACHE_PATH):
+    SPOTIFY = spotipy.Spotify(
+        auth_manager=spotipy.SpotifyOAuth(
+            scope=SCOPES,
+            client_id="22e27810dff0451bb93a71beb5e4b70d",
+            client_secret="6254b7703d8540a48b4795d82eae9300",
+            redirect_uri="http://localhost:8080/",
+            cache_handler=spotipy.CacheFileHandler(
+                cache_path=CACHE_PATH
+            )
+        )
     )
-)
+else:
+    SPOTIFY = spotipy.Spotify(
+        auth_manager=spotipy.SpotifyClientCredentials(
+            client_id='22e27810dff0451bb93a71beb5e4b70d',
+            client_secret='6254b7703d8540a48b4795d82eae9300'
+        )
+    )
 
 _ytmusic_cookies = {
     "accept": "*/*",
@@ -104,6 +91,34 @@ _ytmusic_cookies = {
 }
 
 YTMUSIC = YTMusic(auth=json.dumps(_ytmusic_cookies))
+
+
+class Image:
+    """
+    An object representing a Spotify image resource.
+
+    Attributes
+    ----------
+    height : :class:`str`
+        The height of the image.
+    width : :class:`str`
+        The width of the image.
+    url : :class:`str`
+        The URL of the image.
+    """
+
+    __slots__ = ("height", "width", "url")
+
+    def __init__(self, *, height: str, width: str, url: str):
+        self.height = height
+        self.width = width
+        self.url = url
+
+    def __repr__(self):
+        return f"<melo.Image: {self.url!r} (width: {self.width!r}, height: {self.height!r})>"
+
+    def __eq__(self, other):
+        return type(self) is type(other) and self.url == other.url
 
 
 @dataclass

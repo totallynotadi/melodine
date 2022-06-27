@@ -1,9 +1,13 @@
+import os
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Dict, List, Literal, Optional
+
+import appdirs
+import spotipy
 from typing_extensions import Self
 
-from ...utils import SPOTIFY, Image, URIBase
+from ...utils import SCOPES, SPOTIFY, CACHE_PATH, Image, URIBase
 from .album import Album
 from .artist import Artist
 from .episode import Episode
@@ -16,7 +20,7 @@ from .track import PlaylistTrack, Track
 @dataclass
 class Category:
     def __init__(self, data: Dict) -> None:
-        self.id = data.get('id')  #pylint: disable=invalid-name
+        self.id = data.get('id')  # pylint: disable=invalid-name
         self.name = data.get('name')
         self.images = [Image(**image) for image in data.get('icons')]
 
@@ -32,19 +36,53 @@ class Category:
 
 class Client(URIBase):
     def __init__(self) -> None:
+        if not os.path.exists(CACHE_PATH):
+            self.__is_authorized = False
+
+            self.id = None  # pylint: disable=invalid-name
+            self.name = None
+            self.href = None
+            self.uri = None
+            self.followers = None
+            self.type = None
+            self.images = None
+        else:
+            self.authorize()
+
+    def __repr__(self):
+        return f"<spotify.Client: {(self.name or 'Unauthorized')!r}>"
+
+    @property
+    def is_authorized(self) -> bool:
+        return self.__is_authorized
+
+    def authorize(self) -> None:
+        '''carry out authorization to access a user's data'''
+
+        SPOTIFY = spotipy.Spotify(
+            auth_manager=spotipy.SpotifyOAuth(
+                scope=SCOPES,
+                client_id="22e27810dff0451bb93a71beb5e4b70d",
+                client_secret="6254b7703d8540a48b4795d82eae9300",
+                redirect_uri="http://localhost:8080/",
+                cache_handler=spotipy.CacheFileHandler(
+                    cache_path=os.path.join(
+                        appdirs.user_data_dir(), '.melo', 'spotify_cache'
+                    )
+                )
+            )
+        )
 
         data = SPOTIFY.current_user()
 
-        self.id = data.get('id')  # pylint: disable=invalid-name
+        self.id = data.get('id')
         self.name = data.get('display_name')
         self.href = 'open.spotify.com/user/' + self.id
         self.uri = data.get('uri')
         self.followers = data.get('followers')
         self.type = data.get('type')
         self.images = [Image(**image_) for image_ in data.get('images', [])]
-
-    def __repr__(self):
-        return f"<spotify.User: {(self.name or self.id)!r}>"
+        self.__is_authorized = True
 
     def currently_playing(self) -> Track:
         data = SPOTIFY.current_user_playing_track()
@@ -55,7 +93,7 @@ class Client(URIBase):
 
     def recently_played(self, limit: int = 20) -> List[Track]:
         data = SPOTIFY.current_user_recently_played(limit=limit)
-        return [Track(track_) for track_ in data.get('track', {})]
+        return [Track(track_['track']) for track_ in data.get('items')]
 
     def featured_playlist(self) -> List[Playlist]:
         data = SPOTIFY.featured_playlists()
@@ -120,7 +158,7 @@ class Client(URIBase):
         offset: Optional[int] = 0
     ) -> List[Album]:
         data = SPOTIFY.current_user_saved_albums(limit=limit, offset=offset)
-        return [Album(album) for album in data['items']]
+        return [Album(album['album']) for album in data['items']]
 
     @cached_property
     def all_saved_albums(self) -> List[Album]:
@@ -214,7 +252,8 @@ class Client(URIBase):
         self,
         limit: Optional[int] = 20,
         offset: Optional[int] = 0,
-        time_range: Literal['long_term', 'short_term', 'medium_term'] = 'medium_term'
+        time_range: Literal['long_term', 'short_term',
+                            'medium_term'] = 'medium_term'
     ) -> List[Artist]:
 
         data = SPOTIFY.current_user_top_artists(
@@ -229,7 +268,9 @@ class Client(URIBase):
         self,
         limit: Optional[int] = 20,
         offset: Optional[int] = 0,
-        time_range: Literal['long_term', 'short_term', 'medium_term'] = 'medium_term'
+        time_range: Literal[
+            'long_term','short_term', 'medium_term'
+        ] = 'medium_term'
     ) -> List[Track]:
 
         data = SPOTIFY.current_user_top_tracks(
@@ -239,5 +280,6 @@ class Client(URIBase):
         )
 
         return [Track(track_) for track_ in data['items']]
+
 
 client = Client()

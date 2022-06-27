@@ -1,3 +1,5 @@
+import os
+
 from . import innertube, utils
 from .models import *
 from .search import search
@@ -9,3 +11,6 @@ __all__ = [
     "search",
     "utils"
 ]
+
+if not os.path.exists(utils.APP_DIR):
+    os.mkdir(utils.APP_DIR)
