@@ -58,7 +58,7 @@ class Track(Video, URIBase):
         self.name: str = data.get("title", str())
         self.href: str = "https://music.youtube.com/watch?v=" + self.id
         self.uri: str = f"ytmusic:track:{self.id}"
-        self.is_explicit: bool = data.get('isExplicit', False)
+        self.explicit: bool = data.get('isExplicit', False)
 
         self.images: List[Image] = [
             Image(**image)
@@ -74,7 +74,7 @@ class Track(Video, URIBase):
         self.recs_: List[Dict] = []
 
     def __repr__(self) -> str:
-        return f"melo.Track - {(self.name or self.id or self.uri)!r}"
+        return f"<melo.Track - {(self.name or self.id or self.uri)!r}>"
 
     @property
     def artists(self) -> List["ytmusic.Artist"]:

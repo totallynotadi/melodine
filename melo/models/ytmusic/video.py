@@ -75,7 +75,7 @@ class Video(URIBase):
         self.recs_: List[Dict[str, Any]] = []
 
     def __repr__(self) -> str:
-        return f"melo.Video - {(self.name or self.id or self.uri)!r}"
+        return f"<melo.Video - {(self.name or self.id or self.uri)!r}>"
 
     def __str__(self) -> str:
         return str(self.id)
@@ -101,9 +101,11 @@ class Video(URIBase):
 
         retrieves the higest quality adaptive track by default
         '''
+        print(self.url_)
         if self.url_:
             return self.url_
-
+        print(':::fetching new url')
+        
         innertube = InnerTube()
         video_info = innertube.player(self.id)
         self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']

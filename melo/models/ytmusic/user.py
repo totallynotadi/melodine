@@ -25,6 +25,9 @@ class User(URIBase):
             'videos', {}).get('results', [])
         self._playlists: List[Union[Dict, "ytmusic.Playlist"]] = data.get(
             'playlists', {}).get('results', [])
+    
+    def __repr__(self) -> str:
+        return f"<melo.ytmusic.User - {(self.name or self.id or self.uri)!r}>"
 
     @property
     def total_uploads(self) -> int:

@@ -47,7 +47,7 @@ class Playlist(URIBase):
         ]
 
     def __repr__(self) -> str:
-        return f"melo.Playlist - {(self.name or self.id or self.uri)!r}"
+        return f"<melo.Playlist - {(self.name or self.id or self.uri)!r}>"
 
     def __str__(self) -> str:
         return str(self.id)
