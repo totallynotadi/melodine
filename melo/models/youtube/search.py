@@ -1,7 +1,7 @@
 from typing import Any, List, Union
 
-from ..ytmusic.video import Video
-from ...utils import YT
+from melo.models.ytmusic import Video
+from melo.configs import YT
 
 
 def search(

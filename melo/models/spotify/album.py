@@ -1,9 +1,10 @@
 from functools import cached_property
 from typing import List, Optional
 
-from ...utils import Image, SPOTIFY, URIBase
-from .artist import Artist
-from .track import Track
+from melo.utils import Image, URIBase
+from melo.configs import SPOTIFY
+from melo.models.spotify.artist import Artist
+from melo.models.spotify.track import Track
 
 
 class Album(URIBase):
@@ -42,9 +43,6 @@ class Album(URIBase):
 
     def __repr__(self) -> str:
         return f"melo.Album - {(self.name or self.id or self.uri)!r}"
-
-    def __str__(self) -> str:
-        return str(self.id)
 
     @property
     def tracks(self):

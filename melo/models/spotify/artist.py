@@ -1,20 +1,29 @@
 from typing import Dict, List, Literal, Optional
 
-from ...utils import SPOTIFY, Image, URIBase
+from melo.utils import Image, URIBase
+from melo.configs import SPOTIFY
 
 
 class Artist(URIBase):
     '''
-    attributes -
-        id - spotify id for the album
-        name - name of the artist
-        genres - a list of all the genres from an artist
-        albums - a list of all the albums from an artist
-        top tracks - a list of top tracks (a list containing track objects for the top tracks)
+    Attributes
+    ----------
+        id: `str`
+            spotify id for the album
 
-    methods -
-        fetch_albums
-        get_top_tracks
+        name: `str`
+            name of the artist
+
+        genres: `List[str]`
+            a list of all the genres from an artist
+
+        albums: `List[Album]`
+            a list of all the albums from an artist
+
+    methods
+    -------
+        artist_top_tracks: `List[Track]`
+            a list of top tracks (a list containing track objects for the top tracks)
     '''
 
     __slots__ = (
@@ -45,9 +54,6 @@ class Artist(URIBase):
     def __repr__(self) -> str:
         return f"melo.Artist - {(self.name or self.id or self.uri)!r}"
 
-    def __str__(self) -> str:
-        return str(self.id)
-
     @property
     def albums(self):
         if not self._albums:
@@ -59,14 +65,17 @@ class Artist(URIBase):
         return SPOTIFY.artist_albums(self.id, limit=1)['total']
 
     def get_albums(
-            self,
-            limit: Optional[int] = 20,
-            offset: Optional[int] = 0,
-            album_type: Literal['album', 'single', 'appears_on', 'compilation'] = 'album'
-        ) -> List:
+        self,
+        limit: Optional[int] = 20,
+        offset: Optional[int] = 0,
+        album_type: Literal['album', 'single',
+                            'appears_on', 'compilation'] = 'album'
+    ) -> List:
         from .album import Album
+        
         if len(self._albums) == 0:
-            data = SPOTIFY.artist_albums(self.id, limit=limit, offset=offset, album_type=album_type)
+            data = SPOTIFY.artist_albums(
+                self.id, limit=limit, offset=offset, album_type=album_type)
             self._albums = list(Album(album) for album in data['items'])
         return self._albums
 

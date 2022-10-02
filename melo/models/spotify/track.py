@@ -1,12 +1,12 @@
 import datetime
 from typing import List, Optional
+
+from melo.innertube import InnerTube
+from melo.models.spotify.artist import Artist
+from melo.models.spotify.episode import Episode
+from melo.utils import Image, URIBase
+from melo.configs import SPOTIFY, YTMUSIC
 from typing_extensions import Self
-
-from .episode import Episode
-
-from ...innertube import InnerTube
-from ...utils import SPOTIFY, YTMUSIC, Image, URIBase
-from .artist import Artist
 
 
 class Track(URIBase):
@@ -27,24 +27,26 @@ class Track(URIBase):
         "href",
         "duration",
         "url_",
-        "images"
+        "images",
+        "explicit"
     ]
 
-    def __new__(cls: Self, data, **kwargs) -> Self:
+    def __new__(cls: Self, data, **kwargs):
         # for some cases when a result contains an episode
         if data.get('episode'):
             return Episode(data)
         return super().__new__(cls)
 
     def __init__(self, data, **kwargs) -> None:
-        from .album import Album
+        from melo.models.spotify.album import Album
 
         self.artists = list(
             Artist(_artist) for _artist in data.get('artists', [])
         )
 
-        self.album = Album(data.get('album', {})
-                           ) if 'album' in data else kwargs.get('album', {})
+        self.album = Album(
+            data.get('album', {})
+        ) if 'album' in data else kwargs.get('album', {})
 
         self.id = data.get('id', None)  # pylint: disable=invalid-name
         self.name = data.get('name', None)
@@ -67,9 +69,6 @@ class Track(URIBase):
     def __repr__(self) -> str:
         return f"<melo.Track - {(self.name or self.id or self.uri)!r}>"
 
-    def __str__(self) -> str:
-        return str(self.id)
-
     def test_run():  # pylint: disable=no-method-argument
         return Track(SPOTIFY.search('ritchrd - paris', type='track')['tracks']['items'][0])
 
@@ -86,8 +85,8 @@ class Track(URIBase):
         # for ID of the top search results which could be a video (that's not implemented yet)
         # video_id = YTMUSIC.search(f"{self.artists[0].name} - {self.name}")[0]['videoId']
 
-        innertube = InnerTube()
-        video_info = innertube.player(video_id)
+        video_info = InnerTube().player(video_id)
+
         self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
 
         return self.url_
@@ -160,12 +159,13 @@ class PlaylistTrack(Track):
     __slots__ = ['added_by', 'added_at']
 
     def __init__(self, data, **kwargs) -> None:
-        from .client import Client
-        from .user import User
+        from melo.models.spotify.client import Client
+        from melo.models.spotify.user import User
 
         super().__init__(data['track'])
 
-        self.added_by = User(data.get('added_by')) if not isinstance(data.get('added_by'), (Client, User)) else data.get('added_by')
+        self.added_by = User(data.get('added_by')) if not isinstance(
+            data.get('added_by'), (Client, User)) else data.get('added_by')
         self.added_at = datetime.datetime.strptime(
             data["added_at"], "%Y-%m-%dT%H:%M:%SZ"
         )

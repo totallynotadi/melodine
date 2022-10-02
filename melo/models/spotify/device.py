@@ -1,7 +1,9 @@
 from typing import Dict
 
+from melo.utils import URIBase
 
-class Device:
+
+class Device(URIBase):
     def __init__(self, data: Dict) -> None:
         self.id: str = data.get('id')
         self.name: str = data.get('name')
@@ -13,11 +15,5 @@ class Device:
         self.is_private_session: bool = data.get('is_private_session')
         self.is_restricted = data.get('is_restricted')
 
-    def __eq__(self, other):
-        return type(self) is type(other) and self.id == other.id
-
     def __repr__(self):
         return f"<spotify.Device: {(self.name or self.id)!r}>"
-
-    def __str__(self):
-        return self.id

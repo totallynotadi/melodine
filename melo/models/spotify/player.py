@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from ...models import spotify  # pylint: disable=unused-import
-from .device import Device
-from .track import Track
+from melo.models import spotify  # pylint: disable=unused-import
+
+from melo.models.spotify.device import Device
+from melo.models.spotify.track import Track
 
 
 @dataclass

@@ -2,8 +2,9 @@ from typing import Dict, List, Optional, Union
 
 from melo.models import spotify
 
-from ...utils import SPOTIFY, Image, URIBase
-from .track import PlaylistTrack, Track
+from melo.utils import Image, URIBase
+from melo.configs import SPOTIFY
+from melo.models.spotify.track import PlaylistTrack, Track
 
 
 class Playlist(URIBase):  # pylint: disable=too-many-instance-attributes
@@ -37,9 +38,6 @@ class Playlist(URIBase):  # pylint: disable=too-many-instance-attributes
 
     def __repr__(self) -> str:
         return f"melo.Playlist - {(self.name or self.id or self.uri)!r}"
-
-    def __str__(self) -> str:
-        return str(self.id)
 
     def get_tracks(
         self,

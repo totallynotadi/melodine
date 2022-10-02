@@ -2,8 +2,9 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Dict, List, Optional, Union
 
-from ...utils import SPOTIFY, Image, URIBase
-from .episode import Episode
+from melo.utils import Image, URIBase
+from melo.configs import SPOTIFY
+from melo.models.spotify.episode import Episode
 
 
 @dataclass

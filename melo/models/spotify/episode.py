@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from ...utils import SPOTIFY, Image, URIBase
+from melo.utils import Image, URIBase
+from melo.configs import SPOTIFY
 
 
 @dataclass
@@ -22,13 +23,23 @@ class Episode(URIBase):
         self.release_data: datetime = datetime.strptime(
             data.get('release_date', '1000-10-10'), "%Y-%m-%d")
 
-        self.show = Show(data.get('show'))
+        self._show = None if data.get('show') is None else Show(data.get('show'))
         self.images: List[Image] = [
             Image(**image) for image in data.get('images', [])
         ]
 
     def __repr__(self) -> str:
         return f'<spotify.Episode: {self.name!r}>'
+
+    @property
+    def show(self):
+        from .show import Show
+
+        if self._show is not None:
+            return self.show
+
+        self._show = Show(SPOTIFY.episode(self.id)['show'])
+        return self._show
 
     def add_to_playlist(self, playlist_id) -> None:
         SPOTIFY.playlist_add_items(

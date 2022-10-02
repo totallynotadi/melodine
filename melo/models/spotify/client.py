@@ -5,16 +5,16 @@ from typing import Dict, List, Literal, Optional
 
 import appdirs
 import spotipy
+from melo.configs import CACHE_PATH, SCOPES, SPOTIFY
+from melo.models.spotify.album import Album
+from melo.models.spotify.artist import Artist
+from melo.models.spotify.episode import Episode
+from melo.models.spotify.player import Player
+from melo.models.spotify.playlist import Playlist
+from melo.models.spotify.show import Show
+from melo.models.spotify.track import PlaylistTrack, Track
+from melo.utils import Image, URIBase
 from typing_extensions import Self
-
-from ...utils import SCOPES, SPOTIFY, CACHE_PATH, Image, URIBase
-from .album import Album
-from .artist import Artist
-from .episode import Episode
-from .player import Player
-from .playlist import Playlist
-from .show import Show
-from .track import PlaylistTrack, Track
 
 
 @dataclass
@@ -99,7 +99,7 @@ class Client(URIBase):
         data = SPOTIFY.featured_playlists()
         return [Playlist(playlist) for playlist in data['playlists']['items']]
 
-    def new_releases(self):
+    def new_releases(self) -> List[Album]:
         data = SPOTIFY.new_releases()
         return [Album(album) for album in data['albums']['items']]
 

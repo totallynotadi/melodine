@@ -1,8 +1,9 @@
 from functools import cached_property
 from typing import Dict, List, Optional
 
-from ...utils import SPOTIFY, Image, URIBase
-from .playlist import Playlist
+from melo.configs import SPOTIFY
+from melo.models.spotify.playlist import Playlist
+from melo.utils import Image, URIBase
 
 
 class User(URIBase):
