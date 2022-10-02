@@ -1,33 +1,59 @@
-from functools import cached_property
-from typing import Dict, List, Union
+"""
+only playlists and some videos have users.
 
-from ...models import ytmusic  # pylint: disable=unused-import
-from ...utils import YT, YTMUSIC, URIBase
-from .video import Video
+videos might belong to either artists or users. so a try-catch here too.
+albeit, the try-catch wrapped api call needs to be only for the data attr (only when it's needed).
+"""
+
+from typing import Dict, List
+
+from melo.utils import URIBase
+from melo.configs import YTMUSIC, YT
+from melo.models import ytmusic
+from melo.models.ytmusic import Video
 
 
 class User(URIBase):
-    def __init__(self, data: Union[Dict, str]) -> None:
-        if isinstance(data, str):
-            data = YTMUSIC.get_user(data)
 
-        self.id: str = data.get('videos', {}).get(  # pylint: disable=invalid-name
-            'browseId', str())
+    __slots__ = (
+        '_data',
+        'id',
+        '_name',
+        'href',
+        'uri',
+        '_videos',
+        '_playlists',
+
+        '_total_playlists',
+        '_total_uploads',
+        '__next_page_token',
+        '__prev_page_token'
+    )
+
+    def __init__(self, data: Dict, **kwargs) -> None:
+        self._data = None
+
+        self.id: str = data.get('id', kwargs.get('id', None))
         self.uploads_id: str = 'UU' + self.id[2:]
-        self.href: str = f'https://music.youtube.com/channel/{self.id}'
-        self.uri: str = f'ytmusic:user:{self.id}'
-        self.name: str = data.get('name', str())
+        self._name: str = data.get('name', None)
+        self.href: str = "https://music.youtube.com/channel/" + \
+            str(self.id or '')
+        self.uri: str = "ytmusic:user:" + str(self.id or '')
 
-        self._total_playlists: int = 0
-        self._total_uploads: int = 0
+        self._videos: List[Dict] = data.get('videos', {}).get('results')
+        self._playlists: List[Dict] = data.get('playlists', {}).get('results')
 
-        self._videos: List[Union[Dict, Video]] = data.get(
-            'videos', {}).get('results', [])
-        self._playlists: List[Union[Dict, "ytmusic.Playlist"]] = data.get(
-            'playlists', {}).get('results', [])
-    
-    def __repr__(self) -> str:
-        return f"<melo.ytmusic.User - {(self.name or self.id or self.uri)!r}>"
+        self._total_playlists = int()  # aka 0
+        self._total_uploads = int()
+        self.__next_page_token = None
+        self.__prev_page_token = None
+
+    def _get_data(self) -> None:
+        self._data = YTMUSIC.get_user(self.id)
+
+    @classmethod
+    def from_id(cls, data: Dict) -> "User":
+        return cls(data={'id': data})
 
     @property
     def total_uploads(self) -> int:
@@ -35,8 +61,11 @@ class User(URIBase):
         if self._total_uploads:
             return self._total_uploads
 
-        self.total_uploads = YT.get_playlist_items(playlist_id=self.uploads_id, limit=1)[
-            'pageInfo']['totalResults']
+        self._total_uploads = YT.get_playlist_items(
+            playlist_id=self.uploads_id,
+            limit=1,
+            return_json=True
+        )['pageInfo']['totalResults']
         return self._total_uploads
 
     @property
@@ -46,31 +75,54 @@ class User(URIBase):
             return self._total_playlists
 
         self._total_playlists = YT.get_playlists(
-            channel_id=self.id, limit=1, return_json=True)['pageInfo']['totalResults']
+            channel_id=self.id,
+            limit=1,
+            return_json=True
+        )['pageInfo']['totalResults']
         return self._total_playlists
 
     @property
+    def name(self) -> str:
+        if self._name is None:
+            if self._data is None:
+                self._get_data()
+            self._name = self._data['name']
+        return self._name
+
+    @property
     def videos(self) -> List[Video]:
-        '''Property getter for a user's video uploads'''
-        for idx, video in enumerate(self._videos):
+        if len(self._videos) == 0:
+            if self._data is None:
+                self._get_data()
+            self._videos = self._data['videos']['results']
+        for idx, video in enumerate(self._videos.copy()):
             if not isinstance(video, Video):
                 video = Video(video)
-                self._videos[idx] = video
+                self._videos.insert(idx, video)
+                del self._videos[idx + 1]
         return self._videos
 
     def get_videos(
         self,
         limit: int = 10,
-        reset: bool = False
+        reset=False
     ) -> List[Video]:
         '''Get a list of Videos from a User'''
         results = []
-        data = {'nextPageToken': '<placeholder>'}
+        data = {
+            'nextPageToken': (
+                '<placeholder>'
+                if not self.__prev_page_token else self.__next_page_token
+            )
+        }
 
-        while  data.get('nextPageToken'):
+        if data.get('nextPageToken'):
             if data['nextPageToken'] == '<placeholder>' or reset:
                 data = YT.get_playlist_items(
-                    playlist_id=self.uploads_id, limit=limit, return_json=True)
+                    playlist_id=self.uploads_id,
+                    limit=limit,
+                    return_json=True
+                )
             else:
                 data = YT.get_playlist_items(
                     playlist_id=self.uploads_id,
@@ -79,9 +131,12 @@ class User(URIBase):
                     return_json=True
                 )
 
+            self.__next_page_token = data['nextPageToken']
+            self.__prev_page_token = data['prevPageToken']
+
             _results = [Video(video['snippet']) for video in data['items']]
             results += _results
-            yield _results
+            return _results
 
     def get_all_videos(self) -> List[Video]:
         '''gets a list of all videos uploaded by a user.
@@ -114,21 +169,22 @@ class User(URIBase):
 
     @property
     def playlists(self) -> List["ytmusic.Playlist"]:
-        '''Property getter for a user's playlist'''
         from .playlist import Playlist
 
-        for idx, playlist in enumerate(self._playlists):
+        if len(self._playlists) == 0:
+            if self._data is None:
+                self._get_data()
+            self._playlists = self._data['playlists']['results']
+        for idx, playlist in enumerate(self._playlists.copy()):
             if not isinstance(playlist, Playlist):
                 playlist = Playlist(playlist)
-                self._playlists[idx] = playlist
+                self._playlists.insert(idx, playlist)
+                del self._playlists[idx + 1]
         return self._playlists
 
     def get_all_playlists(self) -> List["ytmusic.Playlist"]:
         '''Get a list of all Playlists from a User'''
         from .playlist import Playlist
-
-        if not self._needs_playlists_fetch:
-            return self.playlists
 
         data = {'nextPageToken': '<placeholder>'}
 
@@ -136,19 +192,20 @@ class User(URIBase):
         while data.get('nextPageToken'):
             if not data:
                 data = YT.get_playlists(
-                    channel_id=self.id, limit=5, return_json=True)
+                    channel_id=self.id,
+                    limit=5,
+                    return_json=True
+                )
             else:
                 data = YT.get_playlists(
-                    channel_id=self.id, limit=5, page_token=data['nextPageToken'], return_json=True)
+                    channel_id=self.id,
+                    limit=5,
+                    page_token=data['nextPageToken'],
+                    return_json=True
+                )
 
-            self._playlists += [Playlist(playlist['id'])
-                                for playlist in data['items']]
+            self._playlists += [
+                Playlist(playlist['id'])
+                for playlist in data['items']
+            ]
         return self._playlists
-
-    @cached_property
-    def _needs_playlists_fetch(self):
-        data = YT.get_playlists(channel_id=self.id, limit=5, return_json=True)
-        self._total_playlists = data['pageInfo']['totalResults']
-        if data['nextPageToken']:
-            return True
-        return False

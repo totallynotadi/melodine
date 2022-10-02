@@ -1,119 +1,153 @@
-from typing import Dict, List, Union
+from typing import Any, Dict, List
 
-from ...models import ytmusic  # pylint: disable=unused-import
-from ...utils import YTMUSIC, Image, URIBase
-from .video import Video
+from melo.configs import YTMUSIC
+from melo.innertube import InnerTube
+from melo.models import ytmusic
+from melo.utils import Image, URIBase
 
 
-class Track(Video, URIBase):
-    """A YTMusic Track object
+class Track(URIBase):
+    '''A YTMusic Track Object
 
     Attributes
-    ----------
-    id : str
-        The YouTube video ID for the track
-    name : str
-        The name of the track
-    href : str
-        The music.youtbe URL which is the link to the ytmusic page
-        for the track
-    uri : str
-        The YTMusic uri for the track
-    artists : List[Artist]
-        A list of Artist objects representing the artists for a track
-    album: List[Album]
-        A list of Album objects representing the album the track is from
-    url: str
-        The audio playback url for the track
-    images List[Image]
-        A list of images for the cover art of the track
-    """
+    ---------
+    id: str
+        The Spotify ID for the Track
+    '''
 
-    __slots__ = ["album_"]
+    __slots__ = [
+        'id',
+        'name',
+        'href',
+        'uri',
+        'explicit',
+        'duration',
+        'images',
+        '_artists',
+        '_album',
 
-    def __init__(self, data: Union[Dict, str], **kwargs) -> None:
-        if isinstance(data, str):
-            data = YTMUSIC.get_song(data)['videoDetails']
+        '_url'
+        '_recs',
+        '_recs_offset'
+    ]
 
-        super().__init__(data=data)
-
-        self.artists_: List[Union[Dict, str]] = (
-            list(
-                map(
-                    lambda artist: artist.get("id")
-                    if "tracks" not in artist
-                    else artist,
-                    data.get("artists", []),
-                )
-            ) if "artists" in data
-            else [data.get("channelId", data.get('browseId', str()))]
-        )
-
-        self.album_: Union[Dict, str] = (
-            data.get("album", {}).get("id") if "album" in data
-            else kwargs.get("album", {})
-        )
-
-        self.id: str = data.get("videoId", kwargs.get("track_id", str()))  # pylint: disable=invalid-name
-        self.name: str = data.get("title", str())
+    def __init__(self, data: Dict, **kwargs) -> None:
+        self.id: str = data.get('videoId')
+        self.name: str = data.get('title')
         self.href: str = "https://music.youtube.com/watch?v=" + self.id
         self.uri: str = f"ytmusic:track:{self.id}"
-        self.explicit: bool = data.get('isExplicit', False)
 
+        self.explicit: bool = data.get('isExplicit', False)
+        self.duration: int = data.get(
+            'duration_seconds', data.get('lengthSeconds', 0))
+
+        images: List[Dict]
+        if 'thumbnail' in data:
+            images = data.get('thumbnail')
+            # sometimes, the images are in yet another nested dict
+            if 'thumbnails' in images:
+                # because it's a dict
+                images = images.get('thumbnails')
+        else:
+            images = data.get('thumbnails')
         self.images: List[Image] = [
-            Image(**image)
-            for image in data.get(
-                "thumbnails",
-                data.get("thumbnail", {})
-                if "thumbnails" not in data.get("thumbnail", {})
-                else data.get("thumbnail", {}).get("thumbnails", {}),
-            )
+            Image(**image) for image in (images or [])
         ]
 
-        self.url_: str = str()
-        self.recs_: List[Dict] = []
+        artists: Any
+        if 'artists' in data:
+            artists = data.get('artists')
+        else:
+            artists = [{
+                'name': data.get('author'),
+                'id': data.get('channelId')
+            }]
+        self._artists: List[Dict] = artists
 
-    def __repr__(self) -> str:
-        return f"<melo.Track - {(self.name or self.id or self.uri)!r}>"
+        album: Any
+        if 'album' in data and not isinstance(data['album'], str):
+            album = data.get('album')
+        elif 'album' in kwargs:
+            album = kwargs.get('album')
+        else:
+            album = None
+        self._album: Dict = album
+
+        self._url = str()
+        self._recs = list()
+        self._recs_offset = int()  # aka 0
+
+    @classmethod
+    def from_id(cls, id: str) -> "Track":
+        '''tracks obtained directly from an ID have the album attribute as None'''
+        return cls(data=YTMUSIC.get_song(id)['videoDetails'])
 
     @property
     def artists(self) -> List["ytmusic.Artist"]:
         """Get a list of all Artists from the track"""
         from .artist import Artist
 
-        for idx, artist in enumerate(self.artists_.copy()):
-            if artist:
-                artist = Artist(artist)
-                self.artists_.insert(idx, artist)
-                del self.artists_[idx + 1]
-        return self.artists_
+        for idx, artist in enumerate(self._artists.copy()):
+            if not isinstance(artist, Artist):
+                artist = Artist.partial(artist)
+                self._artists.insert(idx, artist)
+                del self._artists[idx + 1]
+        return self._artists
 
     @property
     def album(self) -> "ytmusic.Album":
-        """property getter for the album the given track is from"""
+        '''Get the Album which the track belongs to'''
         from .album import Album
 
-        if isinstance(self.album_, str):
-            try:
-                self.album_ = YTMUSIC.get_album(self.album_)
-            except (KeyError, ValueError, AttributeError):
-                self.album_ = {}
+        if self._album is not None and not isinstance(self._album, Album):
+            self._album = Album.partial(self._album)
+        return self._album
 
-        if not self.album_ or isinstance(self.album_, Album):
-            return self.album_
+    @property
+    def url(self) -> str:
+        '''fetch the playback url for the track.'''
+        if not self._url:
+            video_id = YTMUSIC.search(
+                f"{self.artists[0].name} - {self.name}", filter='songs'
+            )[0]['videoId']
 
-        if self.album_:
-            self.album_ = Album(data=self.album_)
-        return self.album_
+            video_info = InnerTube().player(video_id)
 
-    def get_recommendations(self, limit: int = 1) -> List["Track"]:
-        """Get recommendations for this particular tracksd"""
-        if not self.recs_:
-            self.recs_ = YTMUSIC.get_watch_playlist(self.id, f"RDAMVM{self.id}")["tracks"]
+            self._url = video_info['streamingData']['adaptiveFormats'][-1]['url']
 
-        recs: List[Dict] = self.recs_[:limit]
-        del self.recs_[:limit]
-        return [Track(track) for track in recs]
+            return self._url
+        return self._url
 
-    def test_run():  # pylint: disable=no-method-argument
-        return Track(YTMUSIC.search(query="sewerslvt-pretty cvnt", filter="songs")[0])
+    def cache_url(self) -> None:
+        '''just a dummy call to trigger the url fetching.'''
+        if not self.url:
+            self._url = self.url
+
+    @property
+    def recommendations(self) -> List["Track"]:
+        '''A list of recommended tracks for this track already fetched upto this point.
+
+        it is initially empty and gets populated as more calls are made to `get_recommendations` are made.
+
+        use `get_recommendations` to fetch new recommendations. instead'''
+        return self._recs
+
+    def get_recommendations(self, limit: int = 10) -> List["Track"]:
+        '''
+        used to get new recommendations for the track.
+
+        earlier fetched recommended tracks can be accessed whith `.recommendations
+        '''
+
+        data = YTMUSIC.get_watch_playlist(
+            self.id,
+            f"RDAMVM{self.id}",
+            limit=self._recs_offset + limit
+        )
+        
+        tracks = data['tracks'][self._recs_offset: (self._recs_offset + limit)]
+        tracks = [Track(track) for track in tracks]
+        self._recs.extend(tracks)
+        self._recs_offset += limit
+
+        return tracks

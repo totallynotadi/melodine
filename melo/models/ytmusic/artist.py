@@ -1,231 +1,237 @@
 from typing import Dict, List, Union
-from typing_extensions import Self
 
-from ...models import ytmusic  # pylint: disable=unused-import
-from ...utils import YT, YTMUSIC, Image, URIBase
+from melo.configs import YTMUSIC
+from melo.models import ytmusic
+from melo.utils import Image, URIBase
 
 
 class Artist(URIBase):
-    """A YTMusic Artist object
 
-    Attributes
-    ----------
-    id : `str`
-        The YTMusic artist ID. Equivalent to the YouTube channelID
-    name : `str`
-        The name of the artist
-    albums : `List[Albums]`
-        A list of top albums from and artist
-    tracks : `List[Track]`
-        A list of top tarcks form the artist
-    images : `List[Image]`
-        A list of images for the album cover art
-    """
+    __slots__ = (
+        '_data',
+        'id',
+        '_name',
+        'href',
+        'uri',
+        '_shuffle_id',
+        '_radio_id',
+        '_singles',
+        '_videos',
+        '_albums',
+        '_songs',
+        '_params',
+        '_images',
+        '_related_artists',
+        '_followers',
+        '_description',
+        '_views',
+    )
 
-    __slots__ = [
-        "_data",
-        "id",
-        "name",
-        "href",
-        "uri",
-        "_singles",
-        "_albums",
-        "_songs",
-        "_videos",
-        "images"
-    ]
+    def __init__(self, data: dict, **kwargs) -> None:
+        self._data = None
 
-    data: Union[Dict, str] = str()
+        self.id: str = data.get('channelId')
+        self._name: Union[str, None] = data.get('name', None)
+        self.href: str = 'https://music.youtube.com/channel/' + \
+            str(self.id or '')
+        self.uri: str = 'ytmusic:artist:' + str(self.id or '')
 
-    def __new__(cls: Self, data: Union[Dict, str]) -> Union[Self, "ytmusic.User"]:
-        from .user import User
-        try:
-            if 'songs' not in data:
-                # TODO - can handle browseId data for simple constructor, implement properties
-                artist_id = data.get('channelId', data.get(
-                    'id', data.get('browseId')))
-            else:
-                artist_id = data
-            cls.data = YTMUSIC.get_artist(artist_id)
-            return super().__new__(cls)
-        except (KeyError, ValueError):
-            return User(data)
-        finally:
-            return super().__new__(cls)  # pylint: disable=lost-exception
+        self._shuffle_id: str = data.get('shuffleId', None)
+        self._radio_id: str = data.get('radioId', None)
 
-    def __init__(self, data: Union[Dict, str]) -> None:
-        if self.data:
-            self._data = self.data
-        else:
-            self._data = data
+        self._singles: List[Dict] = data.get('singles', {}).get('results', [])
+        self._videos: List[Dict] = data.get('videos', {}).get('results', [])
+        self._albums: List[Dict] = data.get('albums', {}).get('results', [])
+        self._songs: List[Dict] = data.get('songs', {}).get('results', [])
 
-        # super().__init__(data=self._data)
+        self._params: str = data.get('singles', {}).get('params', None)
 
-        self.id = self._data.get(  # pylint: disable=invalid-name
-            'channelId', str())
-        self.name = self._data.get('name', str())
-        self.href = f'https://music.youtube.com/channel/{self.id}'
-        self.uri = f'ytmusic:artist:{self.id}'
-
-        self._singles = self._data.get('singles', {}).get('results', [])
-        self._songs = self._data.get('songs', {}).get('results', {})
-        self._videos = self._data.get('videos', {}).get('results', {})
-        self._all_videos = []
-        self._albums = self._data.get('albums', {}).get('results', [])
-        self._all_albums = []  # fill this later in get_all_albums method to avoid api calls in init
-
-        self._related_artists = data.get('related', {}).get('results', [])
-        self.params = self._data.get('singles', {}).get('params', str())
-        self.images = [
-            Image(**image) for image in self._data.get('thumbnails', [])
+        self._images: List[Image] = [
+            Image(**image)
+            for image in data.get('images', [])
         ]
 
-    def __repr__(self) -> str:
-        return f"<melo.Artist - {(self.name or self.id or self.uri)!r}>"
+        self._related_artists: List[Dict] = data.get(
+            'related', {}).get('results', [])
+        self._followers: Union[str, None] = data.get('subscribers', None)
+        self._description: Union[str, None] = data.get('description', None)
+        self._views: Union[str, None] = data.get('views', None)
+
+    def _get_data(self):
+        self._data = YTMUSIC.get_artist(self.id)
+
+    @classmethod
+    def from_id(cls, id: str):
+        return cls(data={'channelId': id})
+
+    @classmethod
+    def partial(cls, data: Dict) -> "Artist":
+        '''
+        for artist data obtained from a track or an album.
+            `{'name': '', 'id': ''}`
+        '''
+        return cls(data={
+            'name': data['name'],
+            'channelId': data['id']
+        })
+
+    @classmethod
+    def from_search(cls, data: Dict) -> "Artist":
+        '''
+        for artist data obtained from a search result 
+            `{'artist': '', 'browseId': '', 'shuffleId': '', 'radioId': ''}`
+
+        also accomodates for artist data from artist['related']
+            `{'title': '', 'browseId': '', 'subscribers': '', 'thumbnails': ''}`
+        '''
+        data['name'] = data.pop('artist', data.pop('title', str()))
+        data['channelId'] = data.pop('browseId')
+        return cls(data=data)
+
+    @property
+    def name(self):
+        if self._name is None:
+            if self._data is None:
+                self._get_data()
+            self._name = self._data['name']
+        return self._name
+
+    @property
+    def shuffle_id(self) -> str:
+        if self._shuffle_id is None:
+            if self._data is None:
+                self._get_data()
+            self._shuffle_id = self._data['shuffleId']
+        return self._shuffle_id
+
+    @property
+    def radio_id(self) -> str:
+        if self._radio_id is None:
+            if self._data is None:
+                self._get_data()
+            self._radio_id = self._data['radioId']
+        return self._radio_id
 
     @property
     def singles(self) -> List["ytmusic.Album"]:
-        '''get list of artist singles'''
+        '''
+        singles and albums are essentially the same thing, 
+        hence comparing them against albums
+        '''
         from .album import Album
-        for idx, single in enumerate(self._singles):
+
+        if len(self._singles) == 0:
+            if self._data is None:
+                self._get_data()
+            self._singles = self._data['singles']['results']
+        for idx, single in enumerate(self._singles.copy()):
             if not isinstance(single, Album):
                 single = Album(single)
-                self._singles[idx] = single
+                self._singles.insert(idx, single)
+                del self._singles[idx + 1]
         return self._singles
-        # return [Album(data=single) for single in self._singles]
 
     @property
     def videos(self) -> List["ytmusic.Video"]:
         from .video import Video
-        for idx, video in enumerate(self._videos):
+
+        if len(self._videos) == 0:
+            if self._data is None:
+                self._get_data()
+            self._videos = self._data['videos']['results']
+        for idx, video in enumerate(self._videos.copy()):
             if not isinstance(video, Video):
                 video = Video(video)
-                self._videos[idx] = video
+                self._videos.insert(idx, video)
+                del self._videos[idx + 1]
         return self._videos
-
-    def get_all_videos(self) -> List["ytmusic.Video"]:
-        '''Get all videos for an artist
-        
-        Might take extermely long in case an artist's channel has a lot of vidoes
-        '''
-        from .video import Video
-
-        data = {'nextPageToken': '<placeholder>'}
-        uploads_id = 'UU' + self.id[2:]
-
-        while data.get('nextPageToken'):
-            if data['nextPageToken'] == '<placeholder>':
-                data = YT.get_playlist_items(
-                    playlist_id=uploads_id, return_json=True)
-            else:
-                data = YT.get_playlist_items(
-                    playlist_id=uploads_id, page_token=data['nextPageToken'], return_json=True)
-            # print(data['items'][0]['snippet']['thumbnails'])
-            for item in data['items']:
-                item['snippet']['thumbnails'] = list(item['snippet']['thumbnails'].values())
-            self._all_videos += [
-                Video(video['snippet'])
-                for video in data['items']
-            ]
-        return self._all_videos
 
     @property
     def albums(self) -> List["ytmusic.Album"]:
-        '''Get albums of an artist based on given limit and offset
-
-        Parameters
-        ----------
-        limit : :class:`int`
-            Maximum number of items to return. Default is 5. Minimum is 1. Maximum is 50.
-        offset : int
-            The offset to start returning tracks from. Default is 0.
-
-        Returns
-        -------
-        albums : List[Album]
-            The albums of the artist
-        '''
         from .album import Album
 
-        for idx, album in enumerate(self._albums):
+        if len(self._albums) == 0:
+            if self._data is None:
+                self._get_data()
+            self._albums = self._data['albums']['results']
+        for idx, album in enumerate(self._albums.copy()):
             if not isinstance(album, Album):
                 album = Album(album)
-                self._albums[idx] = album
+                self._albums.insert(idx, album)
+                del self._albums[idx + 1]
         return self._albums
-        # return [Album(data=album) for album in self._albums[offset: offset + limit]]
-
-    def get_all_albums(self) -> List["ytmusic.Album"]:
-        '''Fetches all the artists's albums.
-
-        This operation might take long based on how many albums the artist has.
-
-        Parameters
-        ----------
-        this method takes no parameters.
-
-        Returns
-        -------
-        albums : List[Albums]
-            All the albums of the artist.
-        '''
-        from .album import Album
-
-        if not self._all_albums:
-            self._all_albums = YTMUSIC.get_artist_albums(
-                channelId=self.id,
-                params=self.params
-            )
-
-        for idx, album in enumerate(self._all_albums):
-            if not isinstance(album, Album):
-                album = Album(album)
-                self._all_albums[idx] = album
-        return self._all_albums
-        # return [Album(album) for album in self._albums]
 
     @property
-    def top_tracks(self) -> List["ytmusic.Track"]:
-        """Gets an artist's top tracks.
-
-        Parameters
-        ----------
-        this method takes no parameters.
-
-        Returns
-        -------
-        tracks : List[Tracks]
-            the aritst top tracks.
-        """
+    def tracks(self) -> List["ytmusic.Track"]:
         from .track import Track
 
-        for idx, song in enumerate(self._songs):
-            if not isinstance(song, Track):
-                song = Track(song)
-                self._songs[idx] = song
+        if len(self._songs) == 0:
+            if self._data is None:
+                self._get_data()
+            self._songs = self._data['songs']['results']
+        for idx, track in enumerate(self._songs.copy()):
+            if not isinstance(track, Track):
+                track = Track(track)
+                self._songs.insert(idx, track)
+                del self._songs[idx + 1]
         return self._songs
-        # return [Track(track) for track in self._songs]
 
     @property
-    def related_artists(self) -> List["Artist"]:
-        '''Get a list of similar artist based on a given artist.
+    def params(self):
+        if self._params is None:
+            if self._data is None:
+                self._get_data()
+            self._params = self._data['singles']['params']
+        return self._params
 
-        Parameters
-        ----------
-        this method takes no parameters.
+    @property
+    def images(self) -> List[Image]:
+        if len(self._images) == 0:
+            if self._data is None:
+                self._get_data()
+            self._images = [
+                Image(**image)
+                for image in self._data['thumbnails']
+            ]
+        return self._images
 
-        Returns
-        -------
-        artists : List[Artist]
-            A list of similar artists.
-        '''
-
-        for idx, artist in enumerate(self._related_artists):
+    @property
+    def related_artists(self) -> List["ytmusic.Artist"]:
+        if len(self._related_artists) == 0:
+            if self._data is None:
+                self._get_data()
+            self._related_artists = self._data['related']['results']
+        for idx, artist in enumerate(self._related_artists.copy()):
             if not isinstance(artist, Artist):
-                artist = Artist(artist)
-                self._related_artists[idx] = artist
+                artist = Artist.from_search(artist)
+                self._related_artists.insert(idx, artist)
+                del self._related_artists[idx + 1]
         return self._related_artists
 
-        # return [
-        #     Artist(artist['browseId'])
-        #     for artist in self._data.get('related', {}).get('results', list())
-        # ]
+    @property
+    def followers(self) -> str:
+        if self._followers is None:
+            if self._data is None:
+                self._get_data()
+            self._followers = self._data['subscribers']
+        return self._followers
+
+    @property
+    def description(self) -> str:
+        if self._description is None:
+            if self._data is None:
+                self._get_data()
+            self._desctiption = self._data.get('description')
+        return self._desctiption
+
+    @property
+    def views(self) -> int:
+        if self._views is None:
+            if self._data is None:
+                self._get_data()
+            self._views = int(
+                self._data['views']
+                .split(' ')[0]
+                .replace(',', '_')
+            )
+        return self._views

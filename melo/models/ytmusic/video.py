@@ -1,99 +1,142 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Union
 
-from ...innertube import InnerTube
-from ...utils import YTMUSIC, Image, URIBase
-from .artist import Artist
+from melo.utils import URIBase, Image
+from melo.configs import YTMUSIC
+from melo.innertube import InnerTube
+from melo.models import ytmusic
+from melo.models.ytmusic.artist import Artist
+from melo.models.ytmusic.track import Track
 
 
 class Video(URIBase):
-    """A YTMusic Video object
 
-    Basically the same as a YTMusic Track
-    but represents a tiny distinction between a track and video
-    that a Video does not have a album while a track does.
-
-    Attributes
-    ----------
-    id : str
-        The YouTube video ID for the track
-    name : str
-        The name of the track
-    href : str
-        The music.youtbe URL which is the link to the ytmusic page
-        for the track
-    uri : str
-        The YTMusic uri for the track
-    artists : List[Artist]
-        A list of Artist objects representing the artists for a track
-    url: str
-        The audio playback url for the track
-    images List[Image]
-        A list of images for the cover art of the track
-    """
-
-    __slots__ = [
+    __slots__ = (
+        '_data',
         'id',
+        '_name',
         'href',
         'uri',
-        'name',
-        'artists_',
-        'images',
-        'duration_',
-        'url_',
-        'recs_'
-    ]
+        '_artists',
+        '_explicit',
+        '_views',
+        '_duration',
+        '_images',
 
-    def __init__(self, data: Union[Dict, str]) -> None:
+        '_url',
+        '_recs',
+        '_recs_offset'
+    )
 
-        if isinstance(data, str):
-            data = YTMUSIC.get_song(data)
+    def __init__(self, data: Dict) -> None:
+        self._data = None
 
-        # print(data.keys())
-        # print(data)
+        self.id: str = data.get('videoId', data.get('resourceId'))
+        self._name: str = data.get('title', None)
+        self.href: str = "https://music.youtube.com/watch?v=" + self.id
+        self.uri: str = "ytmusic:video:" + self.id
 
-        self.id: str = data.get('videoId', data.get('resourceId', {}).get(  # pylint: disable=invalid-name
-            'videoId', str()))
-        self.href: str = f'https://music.youtube.com/watch?v={self.id}'
-        self.uri: str = f'ytmusic:video:{self.id}'
-        self.name: str = data.get('title')
+        self._artists: List[Dict] = data.get('artists', [])
 
-        self.artists_: Union[List[Dict[str, str]], str] = data.get(
-            'artists', data.get('channelId'))
+        self.explicit: bool = data.get('isExplicit', False)
+        self._views: str = data.get('views', data.get('viewCount', None))
 
-        self.images: List[Dict[str, str]] = [
+        self._duration: Union[int, None] = data.get(
+            'lengthSeconds', data.get('duration_seconds', data.get('length', None)))
+
+        self._images: List[Image] = [
             Image(**image)
-            for image in data.get(
-                'thumbnails',
-                data.get('thumbnail') if not 'thumbnails' in data.get('thumbnail', {})
-                else data.get('thumbnail', {}).get('thumbnails', [])
-            )
+            for image in data.get('thumbnails', [])
         ]
 
-        self.duration_: Union[int, None] = data.get('duration_seconds')
+        self.playlist_id = data.get('playlist_id', None)
 
-        self.url_: str = str()
-        self.recs_: List[Dict[str, Any]] = []
+        self._url = str()
+        self._recs = list()
+        self._recs_offset = int()  # aka 0
 
-    def __repr__(self) -> str:
-        return f"<melo.Video - {(self.name or self.id or self.uri)!r}>"
+    def _get_data(self) -> None:
+        self._data = YTMUSIC.get_song(self.id)['videoDetails']
 
-    def __str__(self) -> str:
-        return str(self.id)
+    @classmethod
+    def from_id(cls, id) -> "Video":
+        return cls(data={'videoId': id})
+
+    @classmethod
+    def from_raw(cls, data: Dict) -> "Video":
+        data['artists'] = [
+            {
+                'name': data.pop('author'),
+                'id': data.pop('channelId')
+            }
+        ]
+        data['thumbnails'] = data.pop('thumbnail').get('thumbnails')
+        return cls(data=data)
 
     @property
-    def artists(self) -> List[Artist]:
-        '''Get a list of artist for the track or video'''
+    def name(self) -> str:
+        if self._name is None:
+            if self._data is None:
+                self._get_data()
+            self._name = self._data['title']
+        return self._name
+
+    @property
+    def artists(self) -> Union[Artist, "ytmusic.User"]:
         from .user import User
 
-        if isinstance(self.artists_, str):
-            self.artists_ = [YTMUSIC.get_artist(self.artists_)]
+        if len(self._artists) == 0:
+            if self._data is None:
+                self._get_data()
+            self._artists = [{'name': self._data.pop(
+                'author'), 'id': self._data.pop('channelId')}]
+        for idx, artist in enumerate(self._artists.copy()):
+            if not isinstance(artist, (Artist, User, )):
+                # since a video is'nt neccessarily owned by an artist each time,
+                # so it's from a user in case it's not from an artist.
+                try:
+                    user = YTMUSIC.get_user(artist['id'])
+                    artist = User(user, id=artist['id'])
+                except (KeyError, ValueError):
+                    artist = Artist.partial(artist)
+                self._artists.insert(idx, artist)
+                del self._artists[idx + 1]
+        return self._artists
 
-        for idx, artist in enumerate(self.artists_):
-            if not (isinstance(artist, (Artist, User))):
-                # print(artist)
-                self.artists_[idx] = Artist(artist.get(
-                    'id', artist.get('browseId', artist.get('channelId'))))
-        return self.artists_
+    @property
+    def views(self) -> int:
+        if self._views is None or not self._views.isdigit():
+            if self._data is None:
+                self._get_data()
+            self._views = self._data['viewCount']
+        return int(self._views)
+
+    @property
+    def duration(self) -> int:
+        if self._duration is None:
+            if self._data is None:
+                self._get_data()
+            self._duration = self._data['lengthSeconds']
+        if isinstance(self._duration, str):
+            if ':' in self._duration:
+                self._duration = self._duration.split(':')
+                self._duration = int(
+                    self._duration[0]) * 60 + int(self._duration[1])
+            else:
+                self._duration = int(self._duration)
+        return self._duration
+
+    @property
+    def images(self) -> List[Image]:
+        if len(self._images) == 0:
+            if self._data is None:
+                self._get_data()
+            self._images = self._data.get('thumbnail')['thumbnails']
+        for idx, image in enumerate(self._images.copy()):
+            if not isinstance(image, Image):
+                image = Image(**image)
+                self._images.insert(idx, image)
+                del self._images[idx + 1]
+        return self._images
 
     @property
     def url(self) -> str:
@@ -101,36 +144,43 @@ class Video(URIBase):
 
         retrieves the higest quality adaptive track by default
         '''
-        print(self.url_)
-        if self.url_:
-            return self.url_
-        print(':::fetching new url')
-        
+        if self._url:
+            return self._url
+
         innertube = InnerTube()
         video_info = innertube.player(self.id)
-        self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
+        self._url = video_info['streamingData']['adaptiveFormats'][-1]['url']
 
-        return self.url_
+        return self._url
+
+    def cache_url(self) -> None:
+        '''just a dummy call to trigger the url fetching.'''
+        if not self.url:
+            self._url = self.url
 
     @property
-    def duration(self):
-        if self.duration_:
-            return self.duration_
+    def recommendations(self) -> List["Track"]:
+        '''A list of recommended tracks for this track already fetched upto this point.
 
-        video_info = YTMUSIC.get_song(self.id)['videoDetails']
-        duration = video_info.get('lengthSeconds')
-        self.duration_ = duration
-        return self.duration_
+        it is initially empty and gets populated as more calls are made to `get_recommendations` are made.
 
-    def get_recommendations(
-        self,
-        limit: Optional[int] = 10
-    ) -> List["Video"]:
-        '''Get recommendations for a track or video'''
-        if not self.recs_ or len(self.recs_) > limit:
-            self.recs_.extend(YTMUSIC.get_watch_playlist(
-                self.id, f'RDAMVM{self.id}')['tracks'])
+        use `get_recommendations` to fetch new recommendations. instead'''
+        return self._recs
 
-        recs: List[Dict[str, Any]] = self.recs_[: limit]
-        del self.recs_[: limit]
-        return [Video(data=video) for video in recs]
+    def get_recommendations(self, limit: int = 10) -> List["Track"]:
+        '''used to get new recommendations for the track.
+
+        earlier fetched recommended tracks can be accessed whith `.recommendations'''
+
+        data = YTMUSIC.get_watch_playlist(
+            self.id,
+            f"RDAMVM{self.id}",
+            limit=self._recs_offset + limit
+        )
+
+        tracks = data['tracks'][self._recs_offset: (self._recs_offset + limit)]
+        tracks = [Track(track) for track in tracks]
+        self._recs.append(tracks)
+        self._recs_offset += limit
+
+        return tracks
