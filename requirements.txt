@@ -1,0 +1,8 @@
+spotipy
+ytmusicapi
+youtube_dl
+python-youtube
+appdirs
+ffpyplayer
+requests
+typing_extensions

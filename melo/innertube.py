@@ -118,16 +118,14 @@ class InnerTube:
     ) -> dict:
         '''Get details for a Video.
 
-        Makes a request to the  player endpoint.
-
         Parameters
         ----------
-        video_id : str
+        video_id : `str`
             The id of the video to get the player info for.
 
         Returns
         -------
-        response : dict
+        response : `dict`
             raw player info json.
         '''
         endpoint = f'{self.base_url}/player'

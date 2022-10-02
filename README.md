@@ -55,7 +55,7 @@ results = melo.search('sewerslvt')
 
 print(results.tracks)
 
-# [<melo.Track - 'Pretty Cvnt'>, <melo.Track - 'dissociating'>, <melo.Track - 'Cyberia Lyr1'>, <melo.Track - 'Ecifircas'>, <melo.Track - 'Kawaii Razor Blades'>, <melo.Track - 'goodbye'>]
+# [<melo.Track - 'Pretty Cvnt'>, <melo.Track - 'Cyberia Lyr1'>, <melo.Track - 'Ecifircas'>, <melo.Track - 'goodbye'>]
 ```
 
 to fetch specific types of results
@@ -67,11 +67,11 @@ results = melo.search('sewerslvt', types=['track', 'playlist'])
 
 print(results.playlists)
 
-# [<melo.Playlist - 'Sewerslvt Chronologically'>, <melo.Playlist - 'This Is Sewerslvt'>, <melo.Playlist - 'Sewerslvt Discography'>, <melo.Playlist - 'Breakcore Heaven'>]
+# [<melo.Playlist - 'Sewerslvt Chronologically'>, <melo.Playlist - 'This Is Sewerslvt'>, <melo.Playlist - 'Breakcore Heaven'>]
 
 print(results.tracks)   
 
-# [<melo.Track - 'Pretty Cvnt'>, <melo.Track - 'Ecifircas'>, <melo.Track - 'goodbye'>, <melo.Track - 'Newlove'>, <melo.Track - 'Lexapro Delirium'>]
+# [<melo.Track - 'Pretty Cvnt'>, <melo.Track - 'Ecifircas'>, <melo.Track - 'goodbye'>, <melo.Track - 'Newlove'>]
 
 print(results.album)
 
@@ -89,7 +89,7 @@ ytsearch = melo.search('sewerslvt', source=['ytmusic'], types=['album'])
 
 ytsearch.albums  
 
-# [melo.Album - 'Draining Love Story', melo.Album - 'Sewer//slvt', melo.Album - "we had good times together, don't forget that", melo.Album - 'Drowning in the Sewer', melo.Album - 'suffering from melancholia', melo.Album - 'Newlove']
+# [melo.Album - 'Draining Love Story', melo.Album - 'Sewer//slvt', melo.Album - "we had good times together, don't forget that"]
 ```
 
 Only YouTube Music albums will be fetched. Any combination of parameters can be used as per convinience.
@@ -138,5 +138,11 @@ from melo import spotify.client as client
 # assumes the client is already authorized
 recent_tracks = client.recently_played()
 
-# [<melo.Track - 'Star Shopping'>, <melo.Track - 'Rum & Her'>, <melo.Track - 'Castle Maze'>, <melo.Track - 'Understand'>, <melo.Track - '違う'>]
+# [<melo.Track - 'Star Shopping'>, <melo.Track - 'Rum & Her'>, <melo.Track - 'Understand'>, <melo.Track - '違う'>]
 ```
+
+# Planned Features
+
+- Implementing YouTube OAuth to retrieve a user's YouTube playlists
+- fetching the lyrics / captions for a track
+- transferring spotify playlists to youtube / youtube music and vice versa
