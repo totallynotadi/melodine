@@ -1,16 +1,17 @@
 import os
 
-from . import innertube, utils
-from .models import *
-from .search import search
+from melo.configs import APP_DIR
+from melo.models import (
+    spotify,
+    ytmusic,
+    youtube
+)
 
-__all__ = [
-    "models.spotify",
-    "models.ytmusic",
-    "innertube",
-    "search",
-    "utils"
-]
+__all__ = (
+    "spotify",
+    "ytmusic",
+    "youtube",
+)
 
-if not os.path.exists(utils.APP_DIR):
-    os.mkdir(utils.APP_DIR)
+if not os.path.exists(APP_DIR):
+    os.mkdir(APP_DIR)

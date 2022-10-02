@@ -4,18 +4,18 @@ from .track import Track
 from .playlist import Playlist
 from .show import Show
 from .episode import Episode
-from .search import search
+from ._search import search
 from .client import client
 # from .user import User
 # from .player import Player
 
 # client = Client()
 
-__all__ = [
-    'Track',
-    'Artist',
-    'Album',
-    'Playlist',
-    'search',
-    'client'
-]
+# __all__ = [
+#     'Track',
+#     'Artist',
+#     'Album',
+#     'Playlist',
+#     'search',
+#     'client'
+# ]
