@@ -7,7 +7,7 @@ for example, a Track object from melo provides the same properties and behaviour
 
 # Installation
 
-    pip install melo
+    pip install melodine
 
 # Usage and Features
 
@@ -42,16 +42,24 @@ the same applies to other models as well (artist, album, playlists, vidoes, and 
 
 melo allows searching content from both services. Results from specific source or of specific types can be fetched.
 
+### Spotify
 ```py
-import melo
+import melodine as melo
 
-results = melo.search('Martin Garrix')
+results = melo.spotify.search('Martin Garrix')
 ```
 
-the `melo.search` function fetched results from Spotify by default, and falls back to YouTube Music when no results are returned from Spotify. It returns a `SearchResults` instance. separated the search results based on result types. for example, only tracks results can be accessed as `SearchResults.tracks` which returns an array of Track objects (an empty array if there's no tracks in the results).
+### YT Music
+```py
+import melodine as melo
+
+results = melo.ytmusic.search('Martin Garrix')
+```
+
+the `search` function fetches results based on the model used. It returns a `SearchResults` instance. separated the search results based on result types. for example, only tracks results can be accessed as `SearchResults.tracks` which returns an array of Track objects (an empty array if there's no tracks in the results).
 
 ```py
-results = melo.search('sewerslvt') 
+results = melo.spotify.search('sewerslvt') 
 
 print(results.tracks)
 
@@ -63,7 +71,7 @@ to fetch specific types of results
 ```py
 import melo
 
-results = melo.search('sewerslvt', types=['track', 'playlist'])  
+results = melo.spotify.search('sewerslvt', types=['track', 'playlist'])  
 
 print(results.playlists)
 
@@ -80,12 +88,11 @@ print(results.album)
 
 Only the specified types of results are fetched and the other fields remain empty.
 
-A specific source can also be given to the search function. This is a way to ensure that results from a desired source are fetched. Posisble values for sources are `spotify` and `ytmusic`
 
 ```py
 import melo
 
-ytsearch = melo.search('sewerslvt', source=['ytmusic'], types=['album']) 
+ytsearch = melo.ytmusic.search('sewerslvt', source=['ytmusic'], types=['album']) 
 
 ytsearch.albums  
 
@@ -105,7 +112,7 @@ it's understandable if all thats too mind boggling, here's a code example
 ```py
 import melo
 
-results = melo.search('potsu', source=['ytmusic'], types=['artist'])
+results = melo.spotify.search('potsu', source=['ytmusic'], types=['artist'])
 
 track_name = results.artists[0].albums[3].get_tracks()[0].name  # 'bird'
 ```
