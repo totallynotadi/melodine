@@ -4,9 +4,10 @@ from melodine.utils import Image, URIBase
 from melodine.configs import SPOTIFY
 from melodine.models.spotify.artist import Artist
 from melodine.models.spotify.track import Track
+from melodine.models.base.album import AlbumBase
 
 
-class Album(URIBase):
+class Album(AlbumBase, URIBase):
     '''
     id - spotify id for the album
     name - the name of the album
@@ -24,6 +25,7 @@ class Album(URIBase):
         "name",
         "type",
         "data",
+        'year',
         "uri",
         "id",
     )
@@ -31,15 +33,15 @@ class Album(URIBase):
     def __init__(self, data):
 
         self._data = data
-        self.id = data.get('id', None) # pylint: disable=invalid-name
+        self.id = data.get('id', None)  # pylint: disable=invalid-name
         self.name = data.get('name')
         self.href = data.get('external_urls').get('spotify', None)
         self.uri = data.get('uri', None)
-        
+
         self.year = data.get('release_date').split('-')[0]
         self.type = data.get('album_type', None)
         self.images = [Image(**image) for image in data.get('images', [])]
-        
+
         self.artists = [Artist(artist) for artist in data.get('artists')]
         self._track_count = data.get('total_tracks', 0)
         self._tracks = []
@@ -50,11 +52,12 @@ class Album(URIBase):
     @property
     def total_tracks(self) -> int:
         '''get all the tracks from an album'''
-        
+
         if not self._total_tracks:
-            self._total_tracks = SPOTIFY.album_tracks(self.id, limit=1)['total']    
+            self._total_tracks = SPOTIFY.album_tracks(self.id, limit=1)[
+                'total']
         return self._total_tracks
-    
+
     @property
     def tracks(self):
         '''get all the tracks from the album'''
@@ -63,7 +66,8 @@ class Album(URIBase):
         while len(self._tracks) < self.total_tracks:
             data = SPOTIFY.album_tracks(self.id, limit=50, offset=offset)
             offset += 50
-            self._tracks += list(Track(track, album=self._data) for track in data['items'])
+            self._tracks += list(Track(track, album=self._data)
+                                 for track in data['items'])
         return self._tracks
 
     def get_tracks(self, limit: Optional[int] = 20, offset: Optional[int] = 0) -> List[Track]:
@@ -94,7 +98,7 @@ class Album(URIBase):
 
     # def save_album(self) -> None:
     #     '''Add one or more albums to the current user's
-    #         "Your Music" library. 
+    #         "Your Music" library.
     #     '''
     #     return SPOTIFY.current_user_saved_albums_add([self.id])
 

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class ArtistBase(ABC):
+class PlaylistBase(ABC):
     @classmethod
     def __subclasshook__(cls, subclass):
         return (
@@ -9,13 +9,12 @@ class ArtistBase(ABC):
             hasattr(subclass, 'name') and
             hasattr(subclass, 'href') and
             hasattr(subclass, 'uri') and
+            hasattr(subclass, 'owner') and
+            hasattr(subclass, 'description') and
             hasattr(subclass, 'images') and
 
-            hasattr(subclass, 'album') and
-            hasattr(subclass, 'url') and
-
-            hasattr(subclass, 'related_artists') and callable(
-                subclass.related_artists)
+            hasattr(subclass, 'total_tracks') and
+            hasattr(subclass, 'tracks')
             or
             NotImplemented
         )
@@ -42,25 +41,20 @@ class ArtistBase(ABC):
 
     @property
     @abstractmethod
-    def images(self):
+    def owner(self):
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def followers(self):
+    def description(self):
         raise NotImplementedError
 
     @property
     @abstractmethod
-    def albums(self):
+    def total_tracks(self):
         raise NotImplementedError
 
     @property
     @abstractmethod
     def tracks(self):
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def related_artists(self):
         raise NotImplementedError

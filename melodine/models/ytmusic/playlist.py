@@ -13,9 +13,10 @@ from melodine.models.ytmusic.artist import Artist
 from melodine.models.ytmusic.track import Track
 from melodine.models.ytmusic.video import Video
 from melodine.utils import Image, URIBase
+from melodine.models.base.playlist import PlaylistBase
 
 
-class Playlist(URIBase):
+class Playlist(PlaylistBase, URIBase):
 
     __slots__ = (
         '_data',
@@ -102,7 +103,7 @@ class Playlist(URIBase):
             if self._data is None:
                 self._get_data()
             self._owner = self._data['author']
-            
+
         if not isinstance(self._owner, (Artist, User)):
             try:
                 user = YTMUSIC.get_user(self._owner if isinstance(

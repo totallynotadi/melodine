@@ -2,9 +2,10 @@ from typing import Dict, List, Literal, Optional
 
 from melodine.utils import Image, URIBase
 from melodine.configs import SPOTIFY
+from melodine.models.base.artist import ArtistBase
 
 
-class Artist(URIBase):
+class Artist(ArtistBase, URIBase):
     '''
     Attributes
     ----------
@@ -72,7 +73,7 @@ class Artist(URIBase):
                             'appears_on', 'compilation'] = 'album'
     ) -> List:
         from .album import Album
-        
+
         if len(self._albums) == 0:
             data = SPOTIFY.artist_albums(
                 self.id, limit=limit, offset=offset, album_type=album_type)

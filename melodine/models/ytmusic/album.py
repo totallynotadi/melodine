@@ -5,9 +5,10 @@ from melodine.models import ytmusic
 from melodine.models.ytmusic.artist import Artist
 from melodine.models.ytmusic.track import Track
 from melodine.utils import Image, URIBase
+from melodine.models.base.album import AlbumBase
 
 
-class Album(URIBase):
+class Album(AlbumBase, URIBase):
 
     __slots__ = (
         '_data',
@@ -19,7 +20,7 @@ class Album(URIBase):
         '_type',
         '_description',
         '_year',
-        '_track_count',
+        '_total_tracks',
         '_duration',
         '_images',
         '_artists',
@@ -42,7 +43,7 @@ class Album(URIBase):
         self._type: str = data.get('type', None)
         self._description: str = data.get('description', None)
         self._year: str = data.get('year', None)
-        self._track_count: int = data.get('trackCount', None)
+        self._total_tracks: int = data.get('trackCount', None)
         self._duration: int = data.get('duration_seconds', None)
 
         self._images: List[Image] = [
@@ -126,12 +127,12 @@ class Album(URIBase):
         return self._year
 
     @property
-    def track_count(self) -> int:
-        if self._track_count is None:
+    def total_tracks(self) -> int:
+        if self._total_tracks is None:
             if self._data is None:
                 self._get_data()
-            self._track_count = self._data.get('trackCount')
-        return self._track_count
+            self._total_tracks = self._data.get('trackCount')
+        return self._total_tracks
 
     @property
     def duration(self) -> int:

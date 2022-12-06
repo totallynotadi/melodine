@@ -5,10 +5,26 @@ from melodine.models import spotify
 from melodine.utils import Image, URIBase
 from melodine.configs import SPOTIFY
 from melodine.models.spotify.track import PlaylistTrack, Track
+from melodine.models.base.playlist import PlaylistBase
 
 
-class Playlist(URIBase):  # pylint: disable=too-many-instance-attributes
+class Playlist(PlaylistBase, URIBase):  # pylint: disable=too-many-instance-attributes
     '''A Spotify playlist object'''
+    __slots__ = (
+        "tracks",
+        "total_tracks",
+        "images",
+        "href",
+        "name",
+        "owner",
+        "snapshot_id",
+        "public",
+        "collaborative",
+        "description",
+        "fllowers",
+        "uri",
+        "id",
+    )
 
     def __init__(self, data: Dict) -> None:
         from .user import User
@@ -62,7 +78,7 @@ class Playlist(URIBase):  # pylint: disable=too-many-instance-attributes
         if (offset + limit) < self.total_tracks:
             return [PlaylistTrack(track_) for track_ in self.tracks[offset: offset + limit]]
 
-        #TODO - Use multi-type results with playlist items (it returns episodes as well)
+        # TODO - Use multi-type results with playlist items (it returns episodes as well)
         data = SPOTIFY.playlist_tracks(
             self.id,
             limit=limit,

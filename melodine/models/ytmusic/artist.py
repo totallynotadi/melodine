@@ -3,6 +3,7 @@ from typing import Dict, List, Union
 from melodine.configs import YTMUSIC
 from melodine.models import ytmusic
 from melodine.utils import Image, URIBase
+from melodine.models.base.artist import ArtistBase
 
 
 class Artist(URIBase):
@@ -56,7 +57,7 @@ class Artist(URIBase):
         self._followers: Union[str, None] = data.get('subscribers', None)
         self._description: Union[str, None] = data.get('description', None)
         self._views: Union[str, None] = data.get('views', None)
-        
+
         self.total_albums = len(self._albums) + len(self._singles)
 
     def _get_data(self):

@@ -3,10 +3,11 @@ from typing import Any, Dict, List
 from melodine.configs import YTMUSIC
 from melodine.innertube import InnerTube
 from melodine.models import ytmusic
+from melodine.models.base.track import TrackBase
 from melodine.utils import Image, URIBase
 
 
-class Track(URIBase):
+class Track(TrackBase, URIBase):
     '''A YTMusic Track Object
 
     Attributes
@@ -146,7 +147,7 @@ class Track(URIBase):
             f"RDAMVM{self.id}",
             limit=self._recs_offset + limit
         )
-        
+
         tracks = data['tracks'][self._recs_offset: (self._recs_offset + limit)]
         tracks = [Track(track) for track in tracks]
         self._recs.extend(tracks)

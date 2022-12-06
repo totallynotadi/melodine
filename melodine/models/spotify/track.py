@@ -8,9 +8,10 @@ from melodine.innertube import InnerTube
 from melodine.models.spotify.artist import Artist
 from melodine.models.spotify.episode import Episode
 from melodine.utils import Image, URIBase
+from melodine.models.base.track import TrackBase
 
 
-class Track(URIBase):
+class Track(TrackBase, URIBase):
     '''A Spotify Track Object
 
     Attributes

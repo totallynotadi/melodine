@@ -13,17 +13,16 @@ class AlbumBase(ABC):
             hasattr(subclass, 'duration') and
             hasattr(subclass, 'images') and
 
-            hasattr(subclass, 'from_id') and callable(subclass.from_id) and
-
             hasattr(subclass, 'artists') and
             hasattr(subclass, 'album') and
-            hasattr(subclass, 'url') and 
+            hasattr(subclass, 'url') and
 
-            hasattr(subclass, 'get_recommendations') and callable(subclass.get_recommendations)
+            hasattr(subclass, 'get_recommendations') and callable(
+                subclass.get_recommendations)
             or
             NotImplemented
         )
-    
+
     @property
     @abstractmethod
     def id(self):
@@ -43,23 +42,23 @@ class AlbumBase(ABC):
     @abstractmethod
     def uri(self):
         raise NotImplementedError
-    
-    @property 
+
+    @property
     @abstractmethod
     def type(self):
         raise NotImplementedError
-    
-    @property 
+
+    @property
     @abstractmethod
     def year(self):
         raise NotImplementedError
-    
-    @property 
+
+    @property
     @abstractmethod
     def total_tracks(self):
         raise NotImplementedError
-    
-    @property 
+
+    @property
     @abstractmethod
     def tracks(self):
         raise NotImplementedError
