@@ -11,7 +11,7 @@ class Album(URIBase):
 
     __slots__ = (
         '_data',
-        'id',
+        '_id',
         '_name',
         '_href',
         'uri',
@@ -29,8 +29,10 @@ class Album(URIBase):
     def __init__(self, data: Dict) -> None:
         self._data = None
 
-        self.id: str = data.get(
-            'browseId', YTMUSIC.get_album_browse_id(data.get('audioPlaylistId')))
+        self._id: str = data.get(
+            'browseId',
+            str()
+        )
         self._name: str = data.get('title')
         self._href: str
         self.uri: str = f"ytmusic:album:{self.id}"
@@ -53,6 +55,14 @@ class Album(URIBase):
 
     def _get_data(self) -> None:
         self._data = YTMUSIC.get_album(self.id)
+
+    @property
+    def id(self) -> str:
+        if not self._id:
+            self._id = YTMUSIC.get_album_browse_id(
+                self._data.get('audioPlaylistId')
+            )
+        return self._id
 
     @classmethod
     def from_id(cls, id: str) -> "Album":
