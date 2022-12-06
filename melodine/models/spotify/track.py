@@ -88,7 +88,8 @@ class Track(URIBase):
 
         video_info = InnerTube().player(video_id)
 
-        self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
+        # self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
+        self.url_ = video_info['streamingData']['formats'][-1]['url']
 
         return self.url_
 
