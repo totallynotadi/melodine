@@ -1,33 +1,38 @@
 # region Imports
 import curses
-from curses.textpad import Textbox, rectangle
-from curses import wrapper, panel
-from ffpyplayer.player import MediaPlayer
-from ffpyplayer.tools import set_log_callback, loglevels
+
 import math
-from melodine import ytmusic, spotify, player, innertube 
 import os
-import time
-import utils
 import threading
+import time
+from curses import panel, wrapper
+from curses.textpad import Textbox, rectangle
+
+from ffpyplayer.player import MediaPlayer
+from ffpyplayer.tools import loglevels, set_log_callback
+from melodine import innertube, player, spotify, utils, ytmusic
 # endregion
 
 # region to make ffpyplayer not output anything
 loglevel_emit = 'error'
+
 def log_callback(message, level):
     if message and loglevels[level] <= loglevels[loglevel_emit]:
         print ("error")
+
 
 set_log_callback(log_callback)
 # endregion
 
 # region God Help Me
 
+
 global ffs
 class Menu():
     search_type = "tracks"
     with open("ffs.txt", 'w') as ffs:
         ffs.write(search_type)
+
     def __init__(self, items, stdscreen):
         self.window = stdscreen.subwin(5, 12, 0, width - 13)
         self.window.keypad(1)
@@ -66,6 +71,7 @@ class Menu():
 
             if key in [curses.KEY_ENTER, ord("\n")]:
                 search_type = self.items[self.position][0].lower()
+
                 with open("ffs.txt", 'w') as ffs:
                     ffs.write(search_type)
                 break
@@ -81,7 +87,9 @@ class Menu():
         panel.update_panels()
         curses.doupdate()
 # endregion
-def main(stdscr):
+
+def runner(stdscr):
+
     curses.noecho()
     stdscr.keypad(True)
     global height
@@ -92,14 +100,18 @@ def main(stdscr):
     index = 0
     playing = False
     height, width = stdscr.getmaxyx()
-    print(height)
+
+    # print(height)
+
     # Quits if terminal is too small
     if height < 14 or width < 40:
         curses.nocbreak()
         stdscr.keypad(False)
         curses.echo()
         curses.endwin()
-        print("Terminal too small!")
+
+        # print("Terminal too small!")
+
         quit()
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
@@ -123,14 +135,17 @@ def main(stdscr):
                 stdscr.keypad(False)
                 curses.echo()
                 curses.endwin()
-                print("Terminal too small!")
+
+                # print("Terminal too small!")
+
                 quit()
             if box.gather():
                 results = search(box, stdscr, menu)
             box = draw_search_box(stdscr)
             playerwin = draw_player(stdscr)
             playerwin.refresh()
-        elif c == ord('/') :
+
+        elif c == ord('/'):
             results = search(box, stdscr, menu)
         elif c == ord('q'):
             curses.nocbreak()
@@ -139,18 +154,21 @@ def main(stdscr):
             curses.endwin()
             break
         elif c >= ord('0') and c <= ord('9'):
+
             selected = results[int(chr(c))]
             # utils.put_notification(selected)
             player_update(playerwin, selected.artists[0].name, selected.name, selected.duration)
             # url = innertube.InnerTube().player(selected.id)['streamingData']['formats'][-1]['url']
             player = player.play(selected.url, fade=6, fade_in=True)
             threading.Thread(target=progressbar, args=(playerwin, selected.duration)).start()
+
         elif c == ord('p'):
             if player:
                 player.toggle_pause()
                 player_update(playerwin)
         elif c == ord('t'):
             menu.display()
+
             typewin = stdscr.subwin(3, 9, 1, width - 13)
             typewin.border()
             ffs = ""
@@ -162,6 +180,7 @@ def main(stdscr):
             with open("Liked.txt") as liked:
                 if selected.name not in liked.readlines():
                     liked.write(selected.name)
+
         elif c == curses.KEY_UP:
             with open("History.txt", "r") as history:
                 search_term = history.readlines()[index]
@@ -171,31 +190,38 @@ def main(stdscr):
 
 # region Curses Functions
 # Initialises player window with "Nothing Playing"
+
 def draw_player(stdscr):
     playerwin = curses.newwin(5, width - 1, height - 5, 0)
     playerwin.border()
     playerwin.addstr(0, 1, "Nothing Playing", curses.color_pair(1) | curses.A_BOLD)
+
     playerwin.refresh()
     playing = False
     return playerwin
 
 # Method to draw panel for search type
+
 def draw_type_menu(stdscr):
     menu_items = [("Tracks", curses.flash), ("Artists", curses.flash), ("Albums", curses.flash)]
+
     menu = Menu(menu_items, stdscr)
     return menu
 
 # Method to draw search box
+
 def draw_search_box(stdscr):
     stdscr.addstr(0, 0, "Search (/ to focus):", curses.color_pair(1) | curses.A_BOLD)
     stdscr.keypad(True)
     editwin = curses.newwin(1,30, 2,1)
     rectangle(stdscr, 1,0, 1+1+1, 1+30+1)
+
     stdscr.refresh()
     box = Textbox(editwin)
     return box
 
 # Updates player window with track data and progressbar
+
 def player_update(player, artist=None, title=None, duration=None):
     minutes = math.floor(duration / 60)
     seconds = math.floor(duration % 60)
@@ -216,6 +242,7 @@ def player_update(player, artist=None, title=None, duration=None):
         playerwin.addstr(3, 8, "-" * length)
     playerwin.refresh()
 
+
 def search(box, stdscr, menu, search=None,):
     curses.curs_set(1)
     if not search:
@@ -223,10 +250,12 @@ def search(box, stdscr, menu, search=None,):
         # Get resulting contents
         search = box.gather()
         # Print the window to the screen
+
     with open("ffs.txt", "r") as help:
             ffs = help.read()
     search_type = ffs
     results = spotify.search(search, types=[search_type])
+
     color = curses.has_colors()
     # Print results based on screensize, maxed at 10
     result_num = height - 9
@@ -234,8 +263,10 @@ def search(box, stdscr, menu, search=None,):
         result_num = 10
     result_box = curses.newwin(result_num + 2, width - 1, 4, 0)
     result_box.border()
+
     result_box.addstr(0, 1, "Enter index number to play", curses.color_pair(1) | curses.A_BOLD)
     line = 1
+
     if search_type == "tracks":
         results = results.tracks
     elif search_type == "artists":
@@ -253,8 +284,10 @@ def search(box, stdscr, menu, search=None,):
                 artists = result.artists[0].name
             if len(name) > width/3:
                 name = name[:(int(width/3))]
+
             duration_minute, duration_seconds = math.floor(result.duration / 60), "{:02d}".format(math.floor(result.duration % 60))
             result_box.addstr(line, 1, f"{line - 1}. |{name}{(int(width/3) - len(name)) * ' '}|{artists}{(int(width/3) - len(artists)) * ' '}|{duration_minute}:{duration_seconds}")
+
             line += 1
             curses.curs_set(0)
             result_box.refresh()
@@ -276,14 +309,17 @@ def search(box, stdscr, menu, search=None,):
                 artists = result.artists[0].name
             if len(name) > width/3:
                 name = name[:(int(width/3))]
+
             duration_minute, duration_seconds = math.floor(result.duration / 60), "{:02d}".format(math.floor(result.duration % 60))
             result_box.addstr(line, 1, f"{line - 1}. |{name}{(int(width/3) - len(name)) * ' '}|{artists}{(int(width/3) - len(artists)) * ' '}|{duration_minute}:{duration_seconds}")
+
             line += 1
             curses.curs_set(0)
             result_box.refresh()
     return results
 
 # Updates progressbar
+
 def progressbar(playerwin, duration):
     pts = 6
     while True:
@@ -302,4 +338,6 @@ def progressbar(playerwin, duration):
         time.sleep(1)
 # endregion
 
-wrapper(main)
+def main():
+  wrapper(main)
+
