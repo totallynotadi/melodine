@@ -114,40 +114,42 @@ class Player:
 
     # pause state
     def pause(self):
-        self.__now_playing.set_pause(True)
+        self.__now_playing.set_pause(True) if self.__now_playing else ''
 
     def get_state(self) -> bool:
-        return self.__now_playing.get_pause()
+        return self.__now_playing.get_pause() if self.__now_playing else False
 
     def set_state(self, state: bool) -> None:
-        self.__now_playing.set_pause(state)
+        self.__now_playing.set_pause(state) if self.__now_playing else ''
 
     def toggle_state(self) -> None:
-        self.__now_playing.toggle_pause()
+        self.__now_playing.toggle_pause() if self.__now_playing else ''
 
     # player volume
     def get_volume(self) -> int:
-        return self.__now_playing.get_volume()
+        return self.__now_playing.get_volume() if self.__now_playing else 0
 
     def set_volume(self, volume: int) -> None:
-        self.__now_playing.set_volume(volume)
+        self.__now_playing.set_volume(volume) if self.__now_playing else ''
 
     # mute
     def get_mute(self) -> bool:
-        return self.__now_playing.get_mute()
+        return self.__now_playing.get_mute() if self.__now_playing else False
 
     def set_mute(self, mute: bool) -> None:
-        self.__now_playing.set_mute(mute)
+        self.__now_playing.set_mute(mute) if self.__now_playing else ''
 
     def toggle_mute(self) -> None:
-        self.__now_playing.set_mute(not self.__now_playing.get_mute())
+        self.__now_playing.set_mute(
+            not self.__now_playing.get_mute()) if self.__now_playing else ''
 
     # playback progress
     def get_current_timestamp(self) -> int:
         return int(self.__now_playing.get_pts()) if self.__now_playing else 0
 
     def seek(self, pts: int) -> None:
-        self.__now_playing.seek(pts, relative=False, accurate=False)
+        self.__now_playing.seek(pts, relative=False,
+                                accurate=False) if self.__now_playing else ''
 
     def get_shuffle(self) -> bool:
         return self.shuffle
@@ -188,4 +190,4 @@ class Player:
 
     # for duration / stream metadata (like audio quality)
     def get_metadata(self):
-        return self.__now_playing.get_metadata()
+        return self.__now_playing.get_metadata() if self.__now_playing else {}
