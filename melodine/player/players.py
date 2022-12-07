@@ -103,7 +103,7 @@ class Player:
                     self.now_playing.url,
                     blocking=None,
                     fade=self.crossfade,
-                    fade_in=True
+                    fade_in=True if self.queue else False
                 )
                 print(self.__now_playing)
                 print(self.now_playing)
@@ -144,7 +144,7 @@ class Player:
 
     # playback progress
     def get_current_timestamp(self) -> int:
-        return int(self.__now_playing.get_pts())
+        return int(self.__now_playing.get_pts()) if self.__now_playing else 0
 
     def seek(self, pts: int) -> None:
         self.__now_playing.seek(pts, relative=False, accurate=False)
