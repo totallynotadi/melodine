@@ -5,11 +5,23 @@ import time
 from typing import BinaryIO, List, Union
 
 from ffpyplayer.player import MediaPlayer
+from ffpyplayer.tools import loglevels, set_log_callback
 
-from melodine.configs import TEMPFILES_DIR
-from melodine.player.helpers import manage_stream, player_fade_in
-from melodine.utils import singleton
 import melodine
+from melodine.configs import TEMPFILES_DIR
+from melodine.models import base
+from melodine.player.helpers import manage_stream
+from melodine.utils import singleton
+
+loglevel_emit = 'error'
+
+
+def log_callback(message, level):
+    if message and loglevels[level] <= loglevels[loglevel_emit]:
+        print("error")
+
+
+set_log_callback(log_callback)
 
 FF_OPTS = {
     'paused': True,
@@ -45,18 +57,18 @@ def playsound(location: Union[str, BinaryIO], *, blocking: bool = False):
 
 
 def play(location: str, *, blocking: bool = False, fade: int = 0, fade_in: bool = False) -> Union[MediaPlayer, None]:
-    player = MediaPlayer(location, loglevel='quiet', ff_opts={
-                         **FF_OPTS, **{'volume': 0.0}}, thread_lib="SDL")
-    time.sleep(1)
+    time.sleep(0.5)
+    player = MediaPlayer(location, ff_opts={**FF_OPTS, **{'volume': 0.0}})
+    time.sleep(1.5)
     player.set_volume(0.0)
-    time.sleep(1)
+    time.sleep(0.5)
 
     manager_thread = threading.Thread(
-        target=manage_stream, args=(player, location, fade))
+        target=manage_stream, args=(player, location, fade), daemon=True)
     if blocking:
         manager_thread.run()
     elif blocking is None:
-        return player
+        return player, manager_thread
     else:
         manager_thread.start()
         return player
@@ -74,26 +86,36 @@ class Player:
         self.recently_played: List = []
         self.now_playing = None
         self.__now_playing = None
-        self.queue: List = []
+        self.queue: List[base.TrackBase] = []
 
-        threading.Thread(target=self.player_handler, args=()).start()
+        thread = threading.Thread(
+            target=self.player_handler, args=(), daemon=True)
+        thread.start()
 
     def player_handler(self):
         sleep_time = 0
         while True:
             for track in self.queue:
+                print(f'new track - {track}')
                 self.queue.remove(track)
                 self.now_playing = track
-                self.__now_playing = play(
+                self.__now_playing, self.__now_playing_thread = play(
                     self.now_playing.url,
-                    blocking=True,
-                    fade=self.crossfade
+                    blocking=None,
+                    fade=self.crossfade,
+                    fade_in=True
                 )
+                print(self.__now_playing)
+                print(self.now_playing)
+                self.__now_playing_thread.run()
                 self.recently_played.append(track)
-
+                print(self.queue)
             time.sleep(0.4)
 
     # pause state
+    def pause(self):
+        self.__now_playing.set_pause(True)
+
     def get_state(self) -> bool:
         return self.__now_playing.get_pause()
 
@@ -115,7 +137,7 @@ class Player:
         return self.__now_playing.get_mute()
 
     def set_mute(self, mute: bool) -> None:
-        self.__now_playing.set_pause(mute)
+        self.__now_playing.set_mute(mute)
 
     def toggle_mute(self) -> None:
         self.__now_playing.set_mute(not self.__now_playing.get_mute())
@@ -140,14 +162,30 @@ class Player:
     def play_next(self, track):
         self.queue.insert(0, track)
 
-    def add_to_queue(self, track):
-        self.queue.append(track)
+    def add_to_queue(self, item: Union[base.TrackBase, base.PlaylistBase, base.AlbumBase]):
+        # if isinstance(item, (base.PlaylistBase, base.AlbumBase)):
+        #     for track in item.tracks:
+        #         self.queue.append(track)
+        # else:
+        self.queue.append(item)
 
-    def remove_from_queue(self, track: Union[int, "melodine.track.Track"]) -> None:
+    def remove_from_queue(self, track: Union[int, base.TrackBase]) -> None:
         if isinstance(track, int):
             del self.queue[track]
         else:
             self.queue.remove(track)
 
-    def play(self, track) -> None:
-        self.add_to_queue(track)
+    # playback
+    def play(self, track: Union[Union[base.TrackBase, base.ArtistBase, base.PlaylistBase, base.AlbumBase], None] = None) -> None:
+        if track is None:
+            self.__now_playing.set_pause(False)
+        else:
+            self.add_to_queue(track)
+
+    def next(self): ...
+    def previous(self): ...
+    def rewind(self): ...
+
+    # for duration / stream metadata (like audio quality)
+    def get_metadata(self):
+        return self.__now_playing.get_metadata()

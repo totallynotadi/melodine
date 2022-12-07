@@ -3,7 +3,6 @@ import time
 
 from ffpyplayer.player import MediaPlayer
 
-
 FADE_IN_STEPS = [x / 10000000.0 for x in range(00000, 10078125, 78125)]
 FADE_OUT_STEPS = [x / 10000000.0 for x in range(00000, 10078125, 78125)]
 FADE_OUT_STEPS.reverse()
@@ -18,21 +17,21 @@ FF_OPTS = {
 
 
 def close_player(player):
-    #print(f':: CLOSING PLAYER at {player.get_pts()}')
+    # print(f':: CLOSING PLAYER at {player.get_pts()}')
     player.toggle_pause()
-    time.sleep(1)
     player.close_player()
+    time.sleep(1)
+    # print(':: BROKE')
 
 
 def close_stream(player: MediaPlayer, fade: bool = True) -> None:
     # #print(f'::: current_pts: {current_pts}, {DURATION - current_pts} seconds left')
 
-    DURATION = player.get_metadata()['duration']
-
-    #print('::: entered closing')
+    # print('::: entered closing')
     if fade:
         player_fade_out(player)
-    #print(':: BROKE')
+    else:
+        close_player(player)
 
 
 def player_fade_in(player: MediaPlayer, fade: int = 0):
@@ -46,7 +45,7 @@ def player_fade_in(player: MediaPlayer, fade: int = 0):
 def player_fade_out(player: MediaPlayer):
     DURATION = player.get_metadata()['duration']
 
-    #print('::: entered closing')
+    # print('::: entered closing- starting fade out')
     for step in FADE_OUT_STEPS[FADE_OUT_STEPS.index(player.get_volume()):]:
         delta = DURATION - player.get_pts()
         player.set_volume(step)
@@ -60,12 +59,12 @@ def manage_stream(player: MediaPlayer, source: str, fade: int = 0, fade_in: bool
     last_pts = 10
     updated_pts = 0
 
+    if player.get_pause():
+        player.toggle_pause()
     threading.Thread(
         target=player_fade_in,
         args=(player, fade)
     ).start() if fade_in else player.set_volume(1.0)
-    if player.get_pause():
-        player.toggle_pause()
 
     DURATION = player.get_metadata()['duration']
 
@@ -122,7 +121,7 @@ def manage_stream(player: MediaPlayer, source: str, fade: int = 0, fade_in: bool
                 buffer_repeat_count = 0
                 close_player(player)
                 break
-            #print(f"breaking from the handler thread, at timestamp: {current_pts}")
+            # print(f"breaking from the handler thread, at timestamp: {current_pts}")
             threading.Thread(
                 target=close_stream,
                 args=(player, bool(fade))
