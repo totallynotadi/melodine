@@ -102,7 +102,6 @@ def runner(stdscr):
     stdscr.keypad(True)
     global height
     global width
-    playing = False
     global player
     global index
     index = 0
@@ -164,9 +163,8 @@ def runner(stdscr):
 
             selected = results[int(chr(c))]
             # utils.put_notification(selected)
-            playing = True
             player_update(
-                playerwin, playing, selected.artists[0].name, selected.name, selected.duration
+                playerwin, "Playing", selected.artists[0].name, selected.name, selected.duration
             )
             # url = innertube.InnerTube().player(selected.id)['streamingData']['formats'][-1]['url']
             player = Player()
@@ -179,7 +177,7 @@ def runner(stdscr):
         elif c == ord("p"):
             if player:
                 player.toggle_state()
-                player_update(playerwin, player, selected.artists[0].name, selected.name, selected.duration)
+                player_update(playerwin, "Paused", selected.artists[0].name, selected.name, selected.duration)
                 bar = threading.Thread(
                     target=progressbar, args=(playerwin, selected.duration, player)
                 ).start()
@@ -255,12 +253,7 @@ def player_update(player, playing, artist=None, title=None, duration=None):
     playerwin = curses.newwin(5, width - 1, height - 5, 0)
     length = width - 16
     playerwin.border()
-    if playing == True:
-        playerwin.addstr(0, 1, "Paused", curses.color_pair(1) | curses.A_BOLD)
-        playing == False
-    else:
-        playerwin.addstr(0, 1, "Playing", curses.color_pair(1) | curses.A_BOLD)
-        playing == True
+    playerwin.addstr(0, 1, playing, curses.color_pair(1) | curses.A_BOLD)
     if artist and title:
         playerwin.addstr(1, 2, title, curses.color_pair(2) | curses.A_BOLD)
         playerwin.addstr(2, 2, artist, curses.color_pair(1))
@@ -274,7 +267,7 @@ def player_update(player, playing, artist=None, title=None, duration=None):
 
 
 def progressbar(playerwin, duration, player):
-    """pts = 0
+    pts = 0
     while True:
         if pts == duration:
             break
@@ -288,24 +281,7 @@ def progressbar(playerwin, duration, player):
         playerwin.addstr(3, 2, f"{minutes}:{'{:02d}'.format(seconds)}")
         playerwin.refresh()
         pts += 1
-        time.sleep(1)"""
-    pts = player.get_current_timestamp()
-    playing = player.get_state()
-    while True:
-        while pts != duration:
-            playing = player.get_state()
-            if playing == False:
-                break
-            length = width - 16
-            percent = duration / length
-            position = math.floor(pts / percent)
-            # playerwin.addstr(1, 30, f"dur: {duration}%: {round(percent,2)}, len: {round(length,2)}, pts%%: {round(pts % percent, 2)}, pos: {position}, pts: {'{:03d}'.format(pts)}")
-            playerwin.addstr(3, 8, "=" * position)
-            minutes = math.floor(pts / 60)
-            seconds = math.floor(pts % 60)
-            playerwin.addstr(3, 2, f"{minutes}:{'{:02d}'.format(seconds)}")
-            playerwin.refresh()
-            time.sleep(1)
+        time.sleep(1)
 
 
 def search(
