@@ -7,20 +7,21 @@ import threading
 import time
 from curses import panel, wrapper
 from curses.textpad import Textbox, rectangle
-
 from ffpyplayer.player import MediaPlayer
 from ffpyplayer.tools import loglevels, set_log_callback
 from melodine import innertube, spotify, utils, ytmusic
 from melodine.configs import APP_DIR
 from melodine.player import Player
+
 # endregion
 
 # region to make ffpyplayer not output anything
-loglevel_emit = 'error'
+loglevel_emit = "error"
+
 
 def log_callback(message, level):
     if message and loglevels[level] <= loglevels[loglevel_emit]:
-        print ("error")
+        print("error")
 
 
 set_log_callback(log_callback)
@@ -30,9 +31,11 @@ set_log_callback(log_callback)
 
 
 global ffs
-class Menu():
+
+
+class Menu:
     search_type = "tracks"
-    with open(os.path.join(APP_DIR,"ffs.txt"), 'w') as ffs:
+    with open(os.path.join(APP_DIR, "ffs.txt"), "w") as ffs:
         ffs.write(search_type)
 
     def __init__(self, items, stdscreen):
@@ -74,7 +77,7 @@ class Menu():
             if key in [curses.KEY_ENTER, ord("\n")]:
                 search_type = self.items[self.position][0].lower()
 
-                with open(os.path.join(APP_DIR,"ffs.txt"), 'w') as ffs:
+                with open(os.path.join(APP_DIR, "ffs.txt"), "w") as ffs:
                     ffs.write(search_type)
                 break
 
@@ -88,7 +91,10 @@ class Menu():
         self.panel.hide()
         panel.update_panels()
         curses.doupdate()
+
+
 # endregion
+
 
 def runner(stdscr):
 
@@ -147,37 +153,43 @@ def runner(stdscr):
             playerwin = draw_player(stdscr)
             playerwin.refresh()
 
-        elif c == ord('/'):
+        elif c == ord("/"):
             results = search(box, stdscr, menu)
-        elif c == ord('q'):
+        elif c == ord("q"):
             curses.nocbreak()
             stdscr.keypad(False)
             curses.echo()
             curses.endwin()
             break
-        elif c >= ord('0') and c <= ord('9'):
+        elif c >= ord("0") and c <= ord("9"):
 
             selected = results[int(chr(c))]
             # utils.put_notification(selected)
-            player_update(playerwin, selected.artists[0].name, selected.name, selected.duration)
+            player_update(
+                playerwin, selected.artists[0].name, selected.name, selected.duration
+            )
             # url = innertube.InnerTube().player(selected.id)['streamingData']['formats'][-1]['url']
             player = Player()
             player.play(selected)
             global bar
-            bar = threading.Thread(target=progressbar, args=(playerwin, selected.duration, player)).start()
+            bar = threading.Thread(
+                target=progressbar, args=(playerwin, selected.duration, player)
+            ).start()
 
-        elif c == ord('p'):
+        elif c == ord("p"):
             if player:
                 player.toggle_pause()
                 player_update(playerwin)
-                bar = threading.Thread(target=progressbar, args=(playerwin, selected.duration, player)).start()
-        elif c == ord('t'):
+                bar = threading.Thread(
+                    target=progressbar, args=(playerwin, selected.duration, player)
+                ).start()
+        elif c == ord("t"):
             menu.display()
 
             typewin = stdscr.subwin(3, 9, 1, width - 13)
             typewin.border()
             ffs = ""
-            with open(os.path.join(APP_DIR,"ffs.txt"), "r") as help:
+            with open(os.path.join(APP_DIR, "ffs.txt"), "r") as help:
                 ffs = help.read()
             typewin.addstr(1, 1, ffs)
             typewin.refresh()
@@ -187,14 +199,16 @@ def runner(stdscr):
                     liked.write(selected.name)
 
         elif c == curses.KEY_UP:
-            with open(os.path.join(APP_DIR,"History.txt"), "r") as history:
+            with open(os.path.join(APP_DIR, "History.txt"), "r") as history:
                 search_term = history.readlines()[index]
                 results = search(box, stdscr, menu, search_term)
                 stdscr.addstr(2, 1, search_term[:30])
             index += 1
 
+
 # region Curses Functions
 # Initialises player window with "Nothing Playing"
+
 
 def draw_player(stdscr):
     playerwin = curses.newwin(5, width - 1, height - 5, 0)
@@ -205,27 +219,37 @@ def draw_player(stdscr):
     playing = False
     return playerwin
 
+
 # Method to draw panel for search type
 
+
 def draw_type_menu(stdscr):
-    menu_items = [("Tracks", curses.flash), ("Artists", curses.flash), ("Albums", curses.flash)]
+    menu_items = [
+        ("Tracks", curses.flash),
+        ("Artists", curses.flash),
+        ("Albums", curses.flash),
+    ]
 
     menu = Menu(menu_items, stdscr)
     return menu
 
+
 # Method to draw search box
+
 
 def draw_search_box(stdscr):
     stdscr.addstr(0, 0, "Search (/ to focus):", curses.color_pair(1) | curses.A_BOLD)
     stdscr.keypad(True)
-    editwin = curses.newwin(1,30, 2,1)
-    rectangle(stdscr, 1,0, 1+1+1, 1+30+1)
+    editwin = curses.newwin(1, 30, 2, 1)
+    rectangle(stdscr, 1, 0, 1 + 1 + 1, 1 + 30 + 1)
 
     stdscr.refresh()
     box = Textbox(editwin)
     return box
 
+
 # Updates player window with track data and progressbar
+
 
 def player_update(player, artist=None, title=None, duration=None):
     minutes = math.floor(duration / 60)
@@ -247,10 +271,12 @@ def player_update(player, artist=None, title=None, duration=None):
         playerwin.addstr(3, 8, "-" * length)
     playerwin.refresh()
 
+
 # Updates progressbar
 
+
 def progressbar(playerwin, duration, player):
-    '''pts = 0
+    """pts = 0
     while True:
         if pts == duration:
             break
@@ -264,7 +290,7 @@ def progressbar(playerwin, duration, player):
         playerwin.addstr(3, 2, f"{minutes}:{'{:02d}'.format(seconds)}")
         playerwin.refresh()
         pts += 1
-        time.sleep(1)'''
+        time.sleep(1)"""
     pts = player.get_current_timestamp()
     while playing and pts != duration:
         length = width - 16
@@ -278,7 +304,13 @@ def progressbar(playerwin, duration, player):
         playerwin.refresh()
         time.sleep(1)
 
-def search(box, stdscr, menu, search=None,):
+
+def search(
+    box,
+    stdscr,
+    menu,
+    search=None,
+):
     curses.curs_set(1)
     if not search:
         box.edit()
@@ -286,8 +318,8 @@ def search(box, stdscr, menu, search=None,):
         search = box.gather()
         # Print the window to the screen
 
-    with open(os.path.join(APP_DIR,"ffs.txt"), "r") as help:
-            ffs = help.read()
+    with open(os.path.join(APP_DIR, "ffs.txt"), "r") as help:
+        ffs = help.read()
     search_type = ffs
     results = spotify.search(search, types=[search_type])
 
@@ -299,7 +331,9 @@ def search(box, stdscr, menu, search=None,):
     result_box = curses.newwin(result_num + 2, width - 1, 4, 0)
     result_box.border()
 
-    result_box.addstr(0, 1, "Enter index number to play", curses.color_pair(1) | curses.A_BOLD)
+    result_box.addstr(
+        0, 1, "Enter index number to play", curses.color_pair(1) | curses.A_BOLD
+    )
     line = 1
 
     if search_type == "tracks":
@@ -314,22 +348,28 @@ def search(box, stdscr, menu, search=None,):
             artists_list = []
             for artist in result.artists:
                 artists_list.append(str(artist.name))
-            artists = ' & '.join(artists_list)
-            if len(artists) > width/3:
+            artists = " & ".join(artists_list)
+            if len(artists) > width / 3:
                 artists = result.artists[0].name
-            if len(name) > width/3:
-                name = name[:(int(width/3))]
+            if len(name) > width / 3:
+                name = name[: (int(width / 3))]
 
-            duration_minute, duration_seconds = math.floor(result.duration / 60), "{:02d}".format(math.floor(result.duration % 60))
-            result_box.addstr(line, 1, f"{line - 1}. |{name}{(int(width/3) - len(name)) * ' '}|{artists}{(int(width/3) - len(artists)) * ' '}|{duration_minute}:{duration_seconds}")
+            duration_minute, duration_seconds = math.floor(
+                result.duration / 60
+            ), "{:02d}".format(math.floor(result.duration % 60))
+            result_box.addstr(
+                line,
+                1,
+                f"{line - 1}. |{name}{(int(width/3) - len(name)) * ' '}|{artists}{(int(width/3) - len(artists)) * ' '}|{duration_minute}:{duration_seconds}",
+            )
 
             line += 1
             curses.curs_set(0)
             result_box.refresh()
         elif search_type == "artists":
             name = str(result.name)
-            if len(name) > width/3:
-                name = name[:(int(width/3))]
+            if len(name) > width / 3:
+                name = name[: (int(width / 3))]
             result_box.addstr(line, 1, f"{line - 1}. |{name}")
             line += 1
             curses.curs_set(0)
@@ -339,19 +379,26 @@ def search(box, stdscr, menu, search=None,):
             artists_list = []
             for artist in result.artists:
                 artists_list.append(str(artist.name))
-            artists = ' & '.join(artists_list)
-            if len(artists) > width/3:
+            artists = " & ".join(artists_list)
+            if len(artists) > width / 3:
                 artists = result.artists[0].name
-            if len(name) > width/3:
-                name = name[:(int(width/3))]
+            if len(name) > width / 3:
+                name = name[: (int(width / 3))]
 
-            duration_minute, duration_seconds = math.floor(result.duration / 60), "{:02d}".format(math.floor(result.duration % 60))
-            result_box.addstr(line, 1, f"{line - 1}. |{name}{(int(width/3) - len(name)) * ' '}|{artists}{(int(width/3) - len(artists)) * ' '}|{duration_minute}:{duration_seconds}")
+            duration_minute, duration_seconds = math.floor(
+                result.duration / 60
+            ), "{:02d}".format(math.floor(result.duration % 60))
+            result_box.addstr(
+                line,
+                1,
+                f"{line - 1}. |{name}{(int(width/3) - len(name)) * ' '}|{artists}{(int(width/3) - len(artists)) * ' '}|{duration_minute}:{duration_seconds}",
+            )
 
             line += 1
             curses.curs_set(0)
             result_box.refresh()
     return results
+
 
 # endregion
 
