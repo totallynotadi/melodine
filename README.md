@@ -1,4 +1,4 @@
-# melo
+# melodine
 
 melo provides consistent data models over Spotify and YouTube Music API objects.
 it's main purpose is to model objects from both platforms in a way that requires no distinction based on it's source while using them
@@ -43,6 +43,7 @@ the same applies to other models as well (artist, album, playlists, vidoes, and 
 melo allows searching content from both services. Results from specific source or of specific types can be fetched.
 
 ### Spotify
+
 ```py
 import melodine as melo
 
@@ -50,6 +51,7 @@ results = melo.spotify.search('Martin Garrix')
 ```
 
 ### YT Music
+
 ```py
 import melodine as melo
 
@@ -63,7 +65,7 @@ results = melo.spotify.search('sewerslvt')
 
 print(results.tracks)
 
-# [<melo.Track - 'Pretty Cvnt'>, <melo.Track - 'Cyberia Lyr1'>, <melo.Track - 'Ecifircas'>, <melo.Track - 'goodbye'>]
+# [<melo.Track - 'Cyberia Lyr1'>, <melo.Track - 'Ecifircas'>, <melo.Track - 'goodbye'>]
 ```
 
 to fetch specific types of results
@@ -75,19 +77,18 @@ results = melo.spotify.search('sewerslvt', types=['track', 'playlist'])
 
 print(results.playlists)
 
-# [<melo.Playlist - 'Sewerslvt Chronologically'>, <melo.Playlist - 'This Is Sewerslvt'>, <melo.Playlist - 'Breakcore Heaven'>]
+# [<melo.Playlist - 'This Is Sewerslvt'>, <melo.Playlist - 'Breakcore Heaven'>]
 
 print(results.tracks)   
 
-# [<melo.Track - 'Pretty Cvnt'>, <melo.Track - 'Ecifircas'>, <melo.Track - 'goodbye'>, <melo.Track - 'Newlove'>]
+# [<melo.Track - 'Ecifircas'>, <melo.Track - 'goodbye'>, <melo.Track - 'Newlove'>]
 
-print(results.album)
+print(results.albums)
 
 # []
 ```
 
 Only the specified types of results are fetched and the other fields remain empty.
-
 
 ```py
 import melo
@@ -96,7 +97,7 @@ ytsearch = melo.ytmusic.search('sewerslvt', source=['ytmusic'], types=['album'])
 
 ytsearch.albums  
 
-# [melo.Album - 'Draining Love Story', melo.Album - 'Sewer//slvt', melo.Album - "we had good times together, don't forget that"]
+# [melo.Album - 'Sewer//slvt', melo.Album - "we had good times together, don't forget that"]
 ```
 
 Only YouTube Music albums will be fetched. Any combination of parameters can be used as per convinience.
@@ -145,7 +146,7 @@ from melo import spotify.client as client
 # assumes the client is already authorized
 recent_tracks = client.recently_played()
 
-# [<melo.Track - 'Star Shopping'>, <melo.Track - 'Rum & Her'>, <melo.Track - 'Understand'>, <melo.Track - '違う'>]
+# [<melo.Track - 'Star Shopping'>, <melo.Track - 'Rum & Her'>, <melo.Track - '違う'>]
 ```
 
 # Planned Features
