@@ -102,11 +102,10 @@ def runner(stdscr):
     stdscr.keypad(True)
     global height
     global width
-    global playing
+    playing = False
     global player
     global index
     index = 0
-    playing = False
     height, width = stdscr.getmaxyx()
 
     # print(height)
@@ -165,8 +164,9 @@ def runner(stdscr):
 
             selected = results[int(chr(c))]
             # utils.put_notification(selected)
+            playing = True
             player_update(
-                playerwin, selected.artists[0].name, selected.name, selected.duration
+                playerwin, playing, selected.artists[0].name, selected.name, selected.duration
             )
             # url = innertube.InnerTube().player(selected.id)['streamingData']['formats'][-1]['url']
             player = Player()
@@ -178,8 +178,8 @@ def runner(stdscr):
 
         elif c == ord("p"):
             if player:
-                player.toggle_pause()
-                player_update(playerwin)
+                player.toggle_state()
+                player_update(playerwin, player, selected.artists[0].name, selected.name, selected.duration)
                 bar = threading.Thread(
                     target=progressbar, args=(playerwin, selected.duration, player)
                 ).start()
@@ -214,9 +214,7 @@ def draw_player(stdscr):
     playerwin = curses.newwin(5, width - 1, height - 5, 0)
     playerwin.border()
     playerwin.addstr(0, 1, "Nothing Playing", curses.color_pair(1) | curses.A_BOLD)
-
     playerwin.refresh()
-    playing = False
     return playerwin
 
 
@@ -251,7 +249,7 @@ def draw_search_box(stdscr):
 # Updates player window with track data and progressbar
 
 
-def player_update(player, artist=None, title=None, duration=None):
+def player_update(player, playing, artist=None, title=None, duration=None):
     minutes = math.floor(duration / 60)
     seconds = math.floor(duration % 60)
     playerwin = curses.newwin(5, width - 1, height - 5, 0)
@@ -292,17 +290,22 @@ def progressbar(playerwin, duration, player):
         pts += 1
         time.sleep(1)"""
     pts = player.get_current_timestamp()
-    while playing and pts != duration:
-        length = width - 16
-        percent = duration / length
-        position = math.floor(pts / percent)
-        # playerwin.addstr(1, 30, f"dur: {duration}%: {round(percent,2)}, len: {round(length,2)}, pts%%: {round(pts % percent, 2)}, pos: {position}, pts: {'{:03d}'.format(pts)}")
-        playerwin.addstr(3, 8, "=" * position)
-        minutes = math.floor(pts / 60)
-        seconds = math.floor(pts % 60)
-        playerwin.addstr(3, 2, f"{minutes}:{'{:02d}'.format(seconds)}")
-        playerwin.refresh()
-        time.sleep(1)
+    playing = player.get_state()
+    while True:
+        while pts != duration:
+            playing = player.get_state()
+            if playing == False:
+                break
+            length = width - 16
+            percent = duration / length
+            position = math.floor(pts / percent)
+            # playerwin.addstr(1, 30, f"dur: {duration}%: {round(percent,2)}, len: {round(length,2)}, pts%%: {round(pts % percent, 2)}, pos: {position}, pts: {'{:03d}'.format(pts)}")
+            playerwin.addstr(3, 8, "=" * position)
+            minutes = math.floor(pts / 60)
+            seconds = math.floor(pts % 60)
+            playerwin.addstr(3, 2, f"{minutes}:{'{:02d}'.format(seconds)}")
+            playerwin.refresh()
+            time.sleep(1)
 
 
 def search(
