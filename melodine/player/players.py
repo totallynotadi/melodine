@@ -96,7 +96,6 @@ class Player:
         sleep_time = 0
         while True:
             for track in self.queue:
-                print(f'new track - {track}')
                 self.queue.remove(track)
                 self.now_playing = track
                 self.__now_playing, self.__now_playing_thread = play(
@@ -105,11 +104,8 @@ class Player:
                     fade=self.crossfade,
                     fade_in=True if self.queue else False
                 )
-                print(self.__now_playing)
-                print(self.now_playing)
                 self.__now_playing_thread.run()
                 self.recently_played.append(track)
-                print(self.queue)
             time.sleep(0.4)
 
     # pause state

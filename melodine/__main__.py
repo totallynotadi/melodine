@@ -104,7 +104,7 @@ def runner(stdscr):
     global width
     global player
     global index
-    index = 0
+    index = -1
     height, width = stdscr.getmaxyx()
 
     # print(height)
@@ -136,24 +136,31 @@ def runner(stdscr):
         # If window resized redraw elements
         # FIXME: Does not redraw correctly
         if c == curses.KEY_RESIZE:
+            stdscr.clear()
+            stdscr = curses.initscr()
+            height, width = stdscr.getmaxyx()
             if height < 14 or width < 40:
                 curses.nocbreak()
                 stdscr.keypad(False)
                 curses.echo()
                 curses.endwin()
 
-                # print("Terminal too small!")
+                print("Terminal too small!")
 
                 quit()
-            if box.gather():
-                results = search(box, stdscr, menu)
             box = draw_search_box(stdscr)
+            menu = draw_type_menu(stdscr)
+            typewin = stdscr.subwin(3, 9, 1, width - 13)
+            typewin.border()
+            typewin.addstr(1, 1, menu.search_type)
+            typewin.refresh()
             playerwin = draw_player(stdscr)
             playerwin.refresh()
+            stdscr.refresh()
 
         elif c == ord("/"):
             results = search(box, stdscr, menu)
-        elif c == ord("q"):
+        elif c == ord("x"):
             curses.nocbreak()
             stdscr.keypad(False)
             curses.echo()
@@ -167,23 +174,22 @@ def runner(stdscr):
                 playerwin, "Playing", selected.artists[0].name, selected.name, selected.duration
             )
             # url = innertube.InnerTube().player(selected.id)['streamingData']['formats'][-1]['url']
+            history = open(os.path.join(APP_DIR, "History.txt"), "a")
+            history.write(selected.name + "\n")
+            history.close()
             player = Player()
             player.play(selected)
             global bar
             bar = threading.Thread(
-                target=progressbar, args=(playerwin, selected.duration, player)
+                target=progressbar, args=(playerwin, selected.duration)
             ).start()
 
         elif c == ord("p"):
             if player:
                 player.toggle_state()
                 player_update(playerwin, "Paused", selected.artists[0].name, selected.name, selected.duration)
-                bar = threading.Thread(
-                    target=progressbar, args=(playerwin, selected.duration, player)
-                ).start()
         elif c == ord("t"):
             menu.display()
-
             typewin = stdscr.subwin(3, 9, 1, width - 13)
             typewin.border()
             ffs = ""
@@ -192,16 +198,41 @@ def runner(stdscr):
             typewin.addstr(1, 1, ffs)
             typewin.refresh()
         elif c == ord("l"):
-            with open(os.path.join(APP_DIR, "Liked.txt")) as liked:
-                if selected.name not in liked.readlines():
-                    liked.write(selected.name)
+            liked_path = os.path.join(APP_DIR, "Liked.txt")
+            if not os.path.exists(os.path.join(APP_DIR, "Liked.txt")):
+                with open(os.path.join(APP_DIR, "Liked.txt"), "a") as liked:
+                    liked.write(selected.name + "\n")
+            else:
+                with open(os.path.join(APP_DIR, "Liked.txt")) as liked:
+                    if selected.name not in liked.readlines():
+                        liked.write(selected.name + "\n")
 
         elif c == curses.KEY_UP:
-            with open(os.path.join(APP_DIR, "History.txt"), "r") as history:
-                search_term = history.readlines()[index]
-                results = search(box, stdscr, menu, search_term)
-                stdscr.addstr(2, 1, search_term[:30])
-            index += 1
+            if os.path.exists(os.path.join(APP_DIR, "History.txt")):
+                with open(os.path.join(APP_DIR, "History.txt"), "r") as history:
+                    search_term = history.readlines()[index]
+                    newline = search_term.index("\n")
+                    search_term = search_term[:newline]
+                    if len(search_term) > 30:
+                        search_term = search_term[:30]
+                    results = search(box, stdscr, menu, search_term)
+                    stdscr.addstr(2, 1, search_term)
+                    if abs(index) < len(history.readlines()) - 1:
+                        index -= 1
+
+        elif c == curses.KEY_DOWN:
+            if os.path.exists(os.path.join(APP_DIR, "History.txt")):
+                with open(os.path.join(APP_DIR, "History.txt"), "r") as history:
+                    search_term = history.readlines()[index]
+                    results = search(box, stdscr, menu, search_term)
+                    stdscr.addstr(2, 1, search_term[:30])
+                    if index < len(history.readlines()) - 1:
+                        index += 1
+
+        # TODO: Display queue
+        elif c == ord("q"):
+            continue
+
 
 
 # region Curses Functions
@@ -215,10 +246,50 @@ def draw_player(stdscr):
     playerwin.refresh()
     return playerwin
 
+def draw_queue(tracks):
+    result_num = height - 11
+    if result_num > 10:
+        result_num = 10
+    result_box = curses.newwin(result_num + 2, width - 1, 4, 0)
+    result_box.border()
+
+    result_box.addstr(
+        0, 1, "Queue", curses.color_pair(1) | curses.A_BOLD
+    )
+    line = 1
+    for track in tracks[:result_num]:
+        name = str(result.name)
+        artists_list = []
+        for artist in result.artists:
+            artists_list.append(str(artist.name))
+        artists = " & ".join(artists_list)
+        if len(artists) > width / 3:
+            artists = result.artists[0].name
+        if len(name) > width / 3:
+            name = name[: (int(width / 3))]
+
+        duration_minute, duration_seconds = math.floor(
+            result.duration / 60
+        ), "{:02d}".format(math.floor(result.duration % 60))
+        result_box.addstr(
+            line,
+            1,
+            f"{line - 1}. |{name}{(int(width/3) - len(name)) * ' '}|{artists}{(int(width/3) - len(artists)) * ' '}|{duration_minute}:{duration_seconds}",
+        )
+
+
+# Method to draw search box
+def draw_search_box(stdscr):
+    stdscr.addstr(0, 0, "Search (/ to focus):", curses.color_pair(1) | curses.A_BOLD)
+    stdscr.keypad(True)
+    editwin = curses.newwin(1, 30, 2, 1)
+    rectangle(stdscr, 1, 0, 1 + 1 + 1, 1 + 30 + 1)
+
+    stdscr.refresh()
+    box = Textbox(editwin)
+    return box
 
 # Method to draw panel for search type
-
-
 def draw_type_menu(stdscr):
     menu_items = [
         ("Tracks", curses.flash),
@@ -229,19 +300,6 @@ def draw_type_menu(stdscr):
     menu = Menu(menu_items, stdscr)
     return menu
 
-
-# Method to draw search box
-
-
-def draw_search_box(stdscr):
-    stdscr.addstr(0, 0, "Search (/ to focus):", curses.color_pair(1) | curses.A_BOLD)
-    stdscr.keypad(True)
-    editwin = curses.newwin(1, 30, 2, 1)
-    rectangle(stdscr, 1, 0, 1 + 1 + 1, 1 + 30 + 1)
-
-    stdscr.refresh()
-    box = Textbox(editwin)
-    return box
 
 
 # Updates player window with track data and progressbar
@@ -266,9 +324,9 @@ def player_update(player, playing, artist=None, title=None, duration=None):
 # Updates progressbar
 
 
-def progressbar(playerwin, duration, player):
-    pts = 0
+def progressbar(playerwin, duration):
     while True:
+        pts = player.get_current_timestamp()
         if pts == duration:
             break
         length = width - 16
@@ -304,8 +362,8 @@ def search(
 
     color = curses.has_colors()
     # Print results based on screensize, maxed at 10
-    result_num = height - 9
-    if height - 9 > 10:
+    result_num = height - 11
+    if result_num > 10:
         result_num = 10
     result_box = curses.newwin(result_num + 2, width - 1, 4, 0)
     result_box.border()

@@ -64,8 +64,8 @@ class Client(URIBase):
         SPOTIFY = spotipy.Spotify(
             auth_manager=spotipy.SpotifyOAuth(
                 scope=SCOPES,
-                client_id="22e27810dff0451bb93a71beb5e4b70d",
-                client_secret="6254b7703d8540a48b4795d82eae9300",
+                client_id="b647fdf572ad4403ba50017e9d09344c",
+                client_secret="16e816fe4ac341c6bf6f07f34881d5a8",
                 redirect_uri="http://localhost:8080/",
                 cache_handler=spotipy.CacheFileHandler(
                     cache_path=os.path.join(
