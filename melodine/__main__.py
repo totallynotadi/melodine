@@ -104,13 +104,15 @@ def runner(stdscr):
     global width
     global player
     global index
+    global autoplay
+    autoplay = True
     index = -1
     height, width = stdscr.getmaxyx()
 
     # print(height)
 
     # Quits if terminal is too small
-    if height < 14 or width < 40:
+    if height < 14 or width < 60:
         curses.nocbreak()
         stdscr.keypad(False)
         curses.echo()
@@ -125,6 +127,11 @@ def runner(stdscr):
     box = draw_search_box(stdscr)
     playerwin = draw_player(stdscr)
     menu = draw_type_menu(stdscr)
+    autotoggle = stdscr.subwin(3, 9, 1,width - 23)
+    autotoggle.border()
+    autotoggle.addstr("autoplay")
+    autotoggle.addstr(1, 1, "ON ")
+    autotoggle.refresh()
     typewin = stdscr.subwin(3, 9, 1, width - 13)
     typewin.border()
     typewin.addstr(1, 1, menu.search_type)
@@ -139,7 +146,7 @@ def runner(stdscr):
             stdscr.clear()
             stdscr = curses.initscr()
             height, width = stdscr.getmaxyx()
-            if height < 14 or width < 40:
+            if height < 14 or width < 60:
                 curses.nocbreak()
                 stdscr.keypad(False)
                 curses.echo()
@@ -150,6 +157,11 @@ def runner(stdscr):
                 quit()
             box = draw_search_box(stdscr)
             menu = draw_type_menu(stdscr)
+            autotoggle = stdscr.subwin(3, 9, 1,width - 23)
+            autotoggle.border()
+            autotoggle.addstr("autoplay")
+            autotoggle.addstr(1, 1, "ON ")
+            autotoggle.refresh()
             typewin = stdscr.subwin(3, 9, 1, width - 13)
             typewin.border()
             typewin.addstr(1, 1, menu.search_type)
@@ -166,46 +178,6 @@ def runner(stdscr):
             curses.echo()
             curses.endwin()
             break
-        elif c >= ord("0") and c <= ord("9"):
-
-            selected = results[int(chr(c))]
-            # utils.put_notification(selected)
-            player_update(
-                playerwin, "Playing", selected.artists[0].name, selected.name, selected.duration
-            )
-            # url = innertube.InnerTube().player(selected.id)['streamingData']['formats'][-1]['url']
-            history = open(os.path.join(APP_DIR, "History.txt"), "a")
-            history.write(selected.name + "\n")
-            history.close()
-            player = Player()
-            player.play(selected)
-            global bar
-            bar = threading.Thread(
-                target=progressbar, args=(playerwin, selected.duration)
-            ).start()
-
-        elif c == ord("p"):
-            if player:
-                player.toggle_state()
-                player_update(playerwin, "Paused", selected.artists[0].name, selected.name, selected.duration)
-        elif c == ord("t"):
-            menu.display()
-            typewin = stdscr.subwin(3, 9, 1, width - 13)
-            typewin.border()
-            ffs = ""
-            with open(os.path.join(APP_DIR, "ffs.txt"), "r") as help:
-                ffs = help.read()
-            typewin.addstr(1, 1, ffs)
-            typewin.refresh()
-        elif c == ord("l"):
-            liked_path = os.path.join(APP_DIR, "Liked.txt")
-            if not os.path.exists(os.path.join(APP_DIR, "Liked.txt")):
-                with open(os.path.join(APP_DIR, "Liked.txt"), "a") as liked:
-                    liked.write(selected.name + "\n")
-            else:
-                with open(os.path.join(APP_DIR, "Liked.txt")) as liked:
-                    if selected.name not in liked.readlines():
-                        liked.write(selected.name + "\n")
 
         elif c == curses.KEY_UP:
             if os.path.exists(os.path.join(APP_DIR, "History.txt")):
@@ -229,6 +201,55 @@ def runner(stdscr):
                     if index < len(history.readlines()) - 1:
                         index += 1
 
+        elif c >= ord("0") and c <= ord("9"):
+            selected = results[int(chr(c))]
+            # utils.put_notification(selected)
+            player_update(
+                playerwin, "Playing", selected.artists[0].name, selected.name, selected.duration
+            )
+            # url = innertube.InnerTube().player(selected.id)['streamingData']['formats'][-1]['url']
+            history = open(os.path.join(APP_DIR, "History.txt"), "a")
+            history.write(selected.name + "\n")
+            history.close()
+            player = Player()
+            player.play(selected)
+            global bar
+            bar = threading.Thread(
+                target=progressbar, args=(playerwin, selected.duration)
+            ).start()
+
+        elif c == ord("a"):
+            if autoplay == True:
+                autoplay = False
+                autotoggle.addstr(1, 1, "ON ")
+            else:
+                autoplay = True
+                autotoggle.addstr(1, 1, "OFF")
+            autotoggle.refresh()
+
+        elif c == ord("l"):
+            liked_path = os.path.join(APP_DIR, "Liked.txt")
+            if not os.path.exists(os.path.join(APP_DIR, "Liked.txt")):
+                with open(os.path.join(APP_DIR, "Liked.txt"), "a") as liked:
+                    liked.write(selected.name + "\n")
+            else:
+                with open(os.path.join(APP_DIR, "Liked.txt")) as liked:
+                    if selected.name not in liked.readlines():
+                        liked.write(selected.name + "\n")
+        
+        elif c == ord("p"):
+            if player:
+                player.toggle_state()
+                player_update(playerwin, "Paused", selected.artists[0].name, selected.name, selected.duration)
+        elif c == ord("t"):
+            menu.display()
+            typewin = stdscr.subwin(3, 9, 1, width - 13)
+            typewin.border()
+            ffs = ""
+            with open(os.path.join(APP_DIR, "ffs.txt"), "r") as help:
+                ffs = help.read()
+            typewin.addstr(1, 1, ffs)
+            typewin.refresh()
         # TODO: Display queue
         elif c == ord("q"):
             continue
