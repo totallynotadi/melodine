@@ -97,7 +97,6 @@ class Menu:
 
 
 def runner(stdscr):
-
     curses.noecho()
     stdscr.keypad(True)
     global height
@@ -124,6 +123,13 @@ def runner(stdscr):
     curses.init_pair(1, curses.COLOR_GREEN, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_MAGENTA, curses.COLOR_BLACK)
     # Initialises search box and player window
+    # Variables required box, playerwin, menu, autotoggle, typewin,
+    box, playerwin, menu, autotoggle, typewin = init_screen(stdscr)
+    typewin.refresh()
+    playerwin.refresh()
+    stdscr.refresh()
+    autotoggle.refresh()
+    """
     box = draw_search_box(stdscr)
     playerwin = draw_player(stdscr)
     menu = draw_type_menu(stdscr)
@@ -137,6 +143,7 @@ def runner(stdscr):
     typewin.addstr(1, 1, menu.search_type)
     typewin.refresh()
     playerwin.refresh()
+    """
     curses.curs_set(0)
     while True:
         c = stdscr.getch()
@@ -144,7 +151,6 @@ def runner(stdscr):
         # FIXME: Does not redraw correctly
         if c == curses.KEY_RESIZE:
             stdscr.clear()
-            stdscr = curses.initscr()
             height, width = stdscr.getmaxyx()
             if height < 14 or width < 60:
                 curses.nocbreak()
@@ -155,11 +161,17 @@ def runner(stdscr):
                 print("Terminal too small!")
 
                 quit()
+            init_screen(stdscr)
+            typewin.refresh()
+            playerwin.refresh()
+            stdscr.refresh()
+            autotoggle.refresh()
+            """
             box = draw_search_box(stdscr)
             menu = draw_type_menu(stdscr)
-            autotoggle = stdscr.subwin(3, 9, 1,width - 23)
+            autotoggle = stdscr.subwin(3, 6, 1,width - 23)
             autotoggle.border()
-            autotoggle.addstr("autoplay")
+            autotoggle.addstr("Radio")
             autotoggle.addstr(1, 1, "ON ")
             autotoggle.refresh()
             typewin = stdscr.subwin(3, 9, 1, width - 13)
@@ -169,6 +181,7 @@ def runner(stdscr):
             playerwin = draw_player(stdscr)
             playerwin.refresh()
             stdscr.refresh()
+            """
 
         elif c == ord("/"):
             results = search(box, stdscr, menu)
@@ -177,7 +190,7 @@ def runner(stdscr):
             stdscr.keypad(False)
             curses.echo()
             curses.endwin()
-            break
+            quit()
 
         elif c == curses.KEY_UP:
             if os.path.exists(os.path.join(APP_DIR, "History.txt")):
@@ -205,7 +218,11 @@ def runner(stdscr):
             selected = results[int(chr(c))]
             # utils.put_notification(selected)
             player_update(
-                playerwin, "Playing", selected.artists[0].name, selected.name, selected.duration
+                playerwin,
+                "Playing",
+                selected.artists[0].name,
+                selected.name,
+                selected.duration,
             )
             # url = innertube.InnerTube().player(selected.id)['streamingData']['formats'][-1]['url']
             history = open(os.path.join(APP_DIR, "History.txt"), "a")
@@ -236,11 +253,17 @@ def runner(stdscr):
                 with open(os.path.join(APP_DIR, "Liked.txt")) as liked:
                     if selected.name not in liked.readlines():
                         liked.write(selected.name + "\n")
-        
+
         elif c == ord("p"):
             if player:
                 player.toggle_state()
-                player_update(playerwin, "Paused", selected.artists[0].name, selected.name, selected.duration)
+                player_update(
+                    playerwin,
+                    "Paused",
+                    selected.artists[0].name,
+                    selected.name,
+                    selected.duration,
+                )
         elif c == ord("t"):
             menu.display()
             typewin = stdscr.subwin(3, 9, 1, width - 13)
@@ -255,7 +278,6 @@ def runner(stdscr):
             continue
 
 
-
 # region Curses Functions
 # Initialises player window with "Nothing Playing"
 
@@ -267,6 +289,7 @@ def draw_player(stdscr):
     playerwin.refresh()
     return playerwin
 
+
 def draw_queue(tracks):
     result_num = height - 11
     if result_num > 10:
@@ -274,9 +297,7 @@ def draw_queue(tracks):
     result_box = curses.newwin(result_num + 2, width - 1, 4, 0)
     result_box.border()
 
-    result_box.addstr(
-        0, 1, "Queue", curses.color_pair(1) | curses.A_BOLD
-    )
+    result_box.addstr(0, 1, "Queue", curses.color_pair(1) | curses.A_BOLD)
     line = 1
     for track in tracks[:result_num]:
         name = str(result.name)
@@ -310,6 +331,7 @@ def draw_search_box(stdscr):
     box = Textbox(editwin)
     return box
 
+
 # Method to draw panel for search type
 def draw_type_menu(stdscr):
     menu_items = [
@@ -321,6 +343,23 @@ def draw_type_menu(stdscr):
     menu = Menu(menu_items, stdscr)
     return menu
 
+
+# Initialise screen
+
+
+def init_screen(stdscr):
+    stdscr.clear()
+    box = draw_search_box(stdscr)
+    playerwin = draw_player(stdscr)
+    menu = draw_type_menu(stdscr)
+    autotoggle = stdscr.subwin(3, 9, 1, width - 23)
+    autotoggle.border()
+    autotoggle.addstr("autoplay")
+    autotoggle.addstr(1, 1, "ON ")
+    typewin = stdscr.subwin(3, 9, 1, width - 13)
+    typewin.border()
+    typewin.addstr(1, 1, menu.search_type)
+    return box, playerwin, menu, autotoggle, typewin
 
 
 # Updates player window with track data and progressbar
