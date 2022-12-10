@@ -102,8 +102,10 @@ def runner(stdscr):
     global height
     global width
     global player
+    global player_state
     global index
     global autoplay
+    player_state = "Nothing Playing"
     autoplay = True
     index = -1
     height, width = stdscr.getmaxyx()
@@ -129,6 +131,7 @@ def runner(stdscr):
     playerwin.refresh()
     stdscr.refresh()
     autotoggle.refresh()
+    player = Player()
     """
     box = draw_search_box(stdscr)
     playerwin = draw_player(stdscr)
@@ -217,9 +220,9 @@ def runner(stdscr):
         elif c >= ord("0") and c <= ord("9"):
             selected = results[int(chr(c))]
             # utils.put_notification(selected)
+            player_state = "Playing"
             player_update(
                 playerwin,
-                "Playing",
                 selected.artists[0].name,
                 selected.name,
                 selected.duration,
@@ -228,9 +231,10 @@ def runner(stdscr):
             history = open(os.path.join(APP_DIR, "History.txt"), "a")
             history.write(selected.name + "\n")
             history.close()
-            player = Player()
+            if player.now_playing:
+                player_state = "Nothing Playing"
+                player._Player__now_playing.close_player()
             player.play(selected)
-            global bar
             bar = threading.Thread(
                 target=progressbar, args=(playerwin, selected.duration)
             ).start()
@@ -256,10 +260,10 @@ def runner(stdscr):
 
         elif c == ord("p"):
             if player:
+                player_state = "Paused"
                 player.toggle_state()
                 player_update(
                     playerwin,
-                    "Paused",
                     selected.artists[0].name,
                     selected.name,
                     selected.duration,
@@ -365,13 +369,13 @@ def init_screen(stdscr):
 # Updates player window with track data and progressbar
 
 
-def player_update(player, playing, artist=None, title=None, duration=None):
+def player_update(player,artist=None, title=None, duration=None):
     minutes = math.floor(duration / 60)
     seconds = math.floor(duration % 60)
     playerwin = curses.newwin(5, width - 1, height - 5, 0)
     length = width - 16
     playerwin.border()
-    playerwin.addstr(0, 1, playing, curses.color_pair(1) | curses.A_BOLD)
+    playerwin.addstr(0, 1, player_state, curses.color_pair(1) | curses.A_BOLD)
     if artist and title:
         playerwin.addstr(1, 2, title, curses.color_pair(2) | curses.A_BOLD)
         playerwin.addstr(2, 2, artist, curses.color_pair(1))
@@ -385,7 +389,7 @@ def player_update(player, playing, artist=None, title=None, duration=None):
 
 
 def progressbar(playerwin, duration):
-    while True:
+    while player_state != "Nothing Playing":
         pts = player.get_current_timestamp()
         if pts == duration:
             break
