@@ -39,7 +39,9 @@ def player_fade_in(player: MediaPlayer, fade: int = 0):
         delta = fade - player.get_pts()
         player.set_volume(step)
         #print(player.get_volume(), player.get_pts(), delta, step)
-        time.sleep(delta / SMOOTHNESS_FACTOR)
+        sleep_time = delta / SMOOTHNESS_FACTOR
+        if sleep_time > 0:
+            time.sleep(sleep_time)
 
 
 def player_fade_out(player: MediaPlayer):
@@ -50,7 +52,9 @@ def player_fade_out(player: MediaPlayer):
         delta = DURATION - player.get_pts()
         player.set_volume(step)
         #print(player.get_volume(), player.get_pts(), delta, step)
-        time.sleep(delta / SMOOTHNESS_FACTOR)
+        sleep_time = delta / SMOOTHNESS_FACTOR
+        if sleep_time > 0:
+            time.sleep(sleep_time)
     else:
         close_player(player)
 
