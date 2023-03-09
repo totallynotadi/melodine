@@ -13,7 +13,6 @@ from melodine.models.ytmusic.artist import Artist
 from melodine.models.ytmusic.track import Track
 from melodine.models.ytmusic.video import Video
 from melodine.utils import Image, URIBase
-from melodine.models.base.playlist import PlaylistBase
 
 
 class Playlist(URIBase):

@@ -6,14 +6,6 @@ from melodine.models import (
     youtube
 )
 
-# __all__ = (
-#     "base",
-#     "spotify",
-#     "ytmusic",
-#     "youtube",
-#     'player',
-# )
-
 __all__ = (
     "base",
     "spotify",
@@ -21,7 +13,7 @@ __all__ = (
     "youtube",
 )
 
-# from melodine.configs import APP_DIR
-# import os
-# if not os.path.exists(APP_DIR):
-#     os.mkdir(APP_DIR)
+from melodine.configs import APP_DIR
+import os
+if not os.path.exists(APP_DIR):
+    os.mkdir(APP_DIR)

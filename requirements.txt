@@ -1,6 +1,0 @@
-spotipy
-ytmusicapi
-youtube_dl
-python-youtube
-appdirs
-requests

@@ -21,15 +21,15 @@ class YTMusicSearchResults(SearchResults):
 
     Attributes
     ----------
-    artists : List[:class:`Artist`]
+    artists : List[`:class:Artist`]
         The artists of the search.
-    playlists : List[:class:`Playlist`]
+    playlists : List[`:class:Playlist`]
         The playlists of the search.
-    albums : List[:class:`Album`]
+    albums : List[`:class:Album`]
         The albums of the search.
-    tracks : List[:class:`Track`]
+    tracks : List[`:class:Track`]
         The tracks of the search.
-    videos: List[:class:`Video`]
+    videos: List[`:class:Video`]
         The videos from the search results
     '''
 

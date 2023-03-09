@@ -9,11 +9,19 @@ from melodine.models.base.album import AlbumBase
 
 class Album(URIBase):
     '''
-    id - spotify id for the album
-    name - the name of the album
-    artists - a list containing a artist object of all the artists from a album
-    tracks - a list containing track objects for all the tracks in a album
-    type - the type of album (a full album, or a single or smthng)
+    Model for Spotify Album response
+
+    Attributes
+    ----------
+    `:attr:id` - spotify id for the album
+
+    `:attr:name` - the name of the album
+
+    `:attr:artists` - a list containing a artist object of all the artists from a album
+
+    `:attr:tracks` - a list containing track objects for all the tracks in a album
+
+    `:attr:type` - the type of album, either one of `album | single | collection`
     '''
 
     __slots__ = (

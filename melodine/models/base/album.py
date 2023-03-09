@@ -1,4 +1,4 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 
 class AlbumBase(metaclass=ABCMeta):
@@ -20,42 +20,42 @@ class AlbumBase(metaclass=ABCMeta):
                 subclass.get_recommendations)
         )
 
-    # @property
-    # @abstractmethod
-    # def id(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def id(self):
+        raise NotImplementedError
 
-    # @property
-    # @abstractmethod
-    # def name(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def name(self):
+        raise NotImplementedError
 
-    # @property
-    # @abstractmethod
-    # def href(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def href(self):
+        raise NotImplementedError
 
-    # @property
-    # @abstractmethod
-    # def uri(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def uri(self):
+        raise NotImplementedError
 
-    # @property
-    # @abstractmethod
-    # def type(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def type(self):
+        raise NotImplementedError
 
-    # @property
-    # @abstractmethod
-    # def year(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def year(self):
+        raise NotImplementedError
 
-    # @property
-    # @abstractmethod
-    # def total_tracks(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def total_tracks(self):
+        raise NotImplementedError
 
-    # @property
-    # @abstractmethod
-    # def tracks(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def tracks(self):
+        raise NotImplementedError

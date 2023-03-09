@@ -32,7 +32,7 @@ class Image:
 
 @dataclass
 class SearchResults:
-    """ A base dataclass of the YTMusicSearchResults and SpotifySearchResults classes. """
+    """ Base class for representing search results from a source. """
 
     def __add__(self, other: "SearchResults"):
         self_items = self.__dict__.items()
@@ -52,9 +52,9 @@ class SearchResults:
 
 class URIBase:
     '''
-    A base class to define basic dunder methods for all URI baed methods. It's purpose is to reduce boiler plate for models
+    Base class for generic dataclass dunder methods defined for objects with a `uri` attribute.
 
-    All melo models must inherit from this class to have basic dunder methods
+    All melodine models must inherit from `URIBase`
     '''
 
     uri = repr(None)

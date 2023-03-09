@@ -68,9 +68,7 @@ class Client(URIBase):
                 client_secret="6254b7703d8540a48b4795d82eae9300",
                 redirect_uri="http://localhost:8080/",
                 cache_handler=spotipy.CacheFileHandler(
-                    cache_path=os.path.join(
-                        appdirs.user_data_dir(), '.melo', 'spotify_cache'
-                    )
+                    cache_path=CACHE_PATH
                 )
             )
         )

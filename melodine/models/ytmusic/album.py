@@ -5,7 +5,6 @@ from melodine.models import ytmusic
 from melodine.models.ytmusic.artist import Artist
 from melodine.models.ytmusic.track import Track
 from melodine.utils import Image, URIBase
-from melodine.models.base.album import AlbumBase
 
 
 class Album(URIBase):

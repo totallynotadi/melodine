@@ -10,7 +10,6 @@ import pyyoutube
 
 APP_DIR = os.path.join(appdirs.user_data_dir(), '.melo')
 CACHE_PATH = os.path.join(APP_DIR, 'spotify_cache')
-PICKLES_DIR = os.path.join(APP_DIR, 'pickles')
 TEMPFILES_DIR = os.path.join(APP_DIR, 'tempfiles')
 
 

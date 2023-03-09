@@ -3,7 +3,6 @@ from typing import Dict, List, Union
 from melodine.configs import YTMUSIC
 from melodine.models import ytmusic
 from melodine.utils import Image, URIBase
-from melodine.models.base.artist import ArtistBase
 
 
 class Artist(URIBase):
@@ -28,7 +27,7 @@ class Artist(URIBase):
         '_views',
     )
 
-    def __init__(self, data: dict, **kwargs) -> None:
+    def __init__(self, data: dict) -> None:
         self._data = None
 
         self.id: str = data.get('channelId')

@@ -3,7 +3,6 @@ from typing import Any, Dict, List
 from melodine.configs import YTMUSIC
 from melodine.innertube import InnerTube
 from melodine.models import ytmusic
-from melodine.models.base.track import TrackBase
 from melodine.utils import Image, URIBase
 
 
