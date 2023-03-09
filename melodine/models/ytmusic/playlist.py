@@ -16,7 +16,7 @@ from melodine.utils import Image, URIBase
 from melodine.models.base.playlist import PlaylistBase
 
 
-class Playlist(PlaylistBase, URIBase):
+class Playlist(URIBase):
 
     __slots__ = (
         '_data',

@@ -5,7 +5,7 @@ from melodine.configs import SPOTIFY
 from melodine.models.base.artist import ArtistBase
 
 
-class Artist(ArtistBase, URIBase):
+class Artist(URIBase):
     '''
     Attributes
     ----------

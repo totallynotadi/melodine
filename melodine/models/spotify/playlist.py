@@ -8,7 +8,7 @@ from melodine.models.spotify.track import PlaylistTrack, Track
 from melodine.models.base.playlist import PlaylistBase
 
 
-class Playlist(PlaylistBase, URIBase):  # pylint: disable=too-many-instance-attributes
+class Playlist(URIBase):  # pylint: disable=too-many-instance-attributes
     '''A Spotify playlist object'''
     __slots__ = (
         "tracks",

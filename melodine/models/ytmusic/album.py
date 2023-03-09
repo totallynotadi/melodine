@@ -8,7 +8,7 @@ from melodine.utils import Image, URIBase
 from melodine.models.base.album import AlbumBase
 
 
-class Album(AlbumBase, URIBase):
+class Album(URIBase):
 
     __slots__ = (
         '_data',

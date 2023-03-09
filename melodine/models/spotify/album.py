@@ -7,7 +7,7 @@ from melodine.models.spotify.track import Track
 from melodine.models.base.album import AlbumBase
 
 
-class Album(AlbumBase, URIBase):
+class Album(URIBase):
     '''
     id - spotify id for the album
     name - the name of the album

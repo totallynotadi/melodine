@@ -1,10 +1,11 @@
 import json
 import os
-import pickle
 
 import appdirs
 import spotipy
 from ytmusicapi import YTMusic
+from youtube_dl import YoutubeDL
+import pyyoutube
 
 
 APP_DIR = os.path.join(appdirs.user_data_dir(), '.melo')
@@ -12,27 +13,11 @@ CACHE_PATH = os.path.join(APP_DIR, 'spotify_cache')
 PICKLES_DIR = os.path.join(APP_DIR, 'pickles')
 TEMPFILES_DIR = os.path.join(APP_DIR, 'tempfiles')
 
-if not os.path.exists(PICKLES_DIR):
-    os.mkdir(PICKLES_DIR)
 
-if not os.path.exists(os.path.join(PICKLES_DIR, 'YT.pickle')):
-    import pyyoutube
-    YT = pyyoutube.Api(api_key='AIzaSyCq47Zxsu4pN1MMWBNa04380TGDxT7hrQM')
-    with open(os.path.join(PICKLES_DIR, 'YT.pickle'), 'wb') as file:
-        pickle.dump(YT, file, protocol=-1)
-else:
-    with open(os.path.join(PICKLES_DIR, 'YT.pickle'), 'rb') as file:
-        YT: "pyyoutube.Api" = pickle.load(file)
+YT = pyyoutube.Api(api_key='AIzaSyCq47Zxsu4pN1MMWBNa04380TGDxT7hrQM')
 
-YTDL_CONFIG = {}
-if not os.path.exists(os.path.join(PICKLES_DIR, 'YTDL.pickle')):
-    from youtube_dl import YoutubeDL
-    YTDL = YoutubeDL(YTDL_CONFIG)
-    with open(os.path.join(PICKLES_DIR, 'YTDL.pickle'), 'wb') as file:
-        pickle.dump(YoutubeDL, file, protocol=-1)
-else:
-    with open(os.path.join(PICKLES_DIR, 'YTDL.pickle'), 'rb') as file:
-        YTDL = pickle.load(file)(YTDL_CONFIG)
+YTDL_CONFIG = {'quiet': True}
+YTDL = YoutubeDL(YTDL_CONFIG)
 
 SCOPES = '''
             user-read-playback-state
@@ -62,7 +47,7 @@ if os.path.exists(CACHE_PATH):
         )
     )
 else:
-    SPOTIFY = spotipy.Spotify(  
+    SPOTIFY = spotipy.Spotify(
         auth_manager=spotipy.SpotifyClientCredentials(
             client_id='22e27810dff0451bb93a71beb5e4b70d',
             client_secret='6254b7703d8540a48b4795d82eae9300'

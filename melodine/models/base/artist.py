@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta
 
 
-class ArtistBase(ABC):
+class ArtistBase(metaclass=ABCMeta):
     @classmethod
     def __subclasshook__(cls, subclass):
         return (
@@ -16,51 +16,49 @@ class ArtistBase(ABC):
 
             hasattr(subclass, 'related_artists') and callable(
                 subclass.related_artists)
-            or
-            NotImplemented
         )
 
-    @property
-    @abstractmethod
-    def id(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def id(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def name(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def name(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def href(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def href(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def uri(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def uri(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def images(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def images(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def followers(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def followers(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def albums(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def albums(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def tracks(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def tracks(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def related_artists(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def related_artists(self):
+    #     raise NotImplementedError

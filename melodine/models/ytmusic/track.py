@@ -7,7 +7,7 @@ from melodine.models.base.track import TrackBase
 from melodine.utils import Image, URIBase
 
 
-class Track(TrackBase, URIBase):
+class Track(URIBase):
     '''A YTMusic Track Object
 
     Attributes

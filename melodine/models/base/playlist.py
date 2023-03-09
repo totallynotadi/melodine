@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta
 
 
-class PlaylistBase(ABC):
+class PlaylistBase(metaclass=ABCMeta):
     @classmethod
     def __subclasshook__(cls, subclass):
         return (
@@ -15,46 +15,44 @@ class PlaylistBase(ABC):
 
             hasattr(subclass, 'total_tracks') and
             hasattr(subclass, 'tracks')
-            or
-            NotImplemented
         )
 
-    @property
-    @abstractmethod
-    def id(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def id(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def name(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def name(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def href(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def href(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def uri(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def uri(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def owner(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def owner(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def description(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def description(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def total_tracks(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def total_tracks(self):
+    #     raise NotImplementedError
 
-    @property
-    @abstractmethod
-    def tracks(self):
-        raise NotImplementedError
+    # @property
+    # @abstractmethod
+    # def tracks(self):
+    #     raise NotImplementedError

@@ -5,7 +5,7 @@ from typing import Dict, List, Literal, Optional
 
 import appdirs
 import spotipy
-from typing_extensions import Self
+
 
 from melodine.configs import CACHE_PATH, SCOPES, SPOTIFY
 from melodine.models.spotify.album import Album
@@ -27,7 +27,7 @@ class Category:
         self.images = [Image(**image) for image in data.get('icons')]
 
     @classmethod
-    def from_id(cls, category_id: str) -> Self:
+    def from_id(cls, category_id: str):
         category_data = SPOTIFY.category(category_id)
         return cls(category_data)
 
@@ -109,7 +109,7 @@ class Client(URIBase):
     def categories(self):
         data = SPOTIFY.categories()
         return [Category(category) for category in data['categories']['items']]
-    
+
     def is_artist_followed(self, artist_id: str) -> bool:
         return SPOTIFY.current_user_following_artists([artist_id])
 
@@ -139,7 +139,7 @@ class Client(URIBase):
                 data = SPOTIFY.next(data)['artists']
             results += data['items']
         return [Artist(artist) for artist in results]
-    
+
     def is_playlist_followed(self, playlist_id: str) -> bool:
         return SPOTIFY.playlist_is_following(playlist_id, [self.id])
 
@@ -172,7 +172,6 @@ class Client(URIBase):
             results += data['items']
         return [Playlist(playlist) for playlist in results]
 
-
     def is_album_saved(self, album_id: str) -> bool:
         ''' Check if an album is already saved in
             the current Spotify user’s “Your Music” library.
@@ -187,7 +186,7 @@ class Client(URIBase):
 
     def unsave_album(self, album_id: str):
         return SPOTIFY.current_user_saved_albums_delete([album_id])
-    
+
     def saved_albums(
         self,
         *,
@@ -211,7 +210,7 @@ class Client(URIBase):
                 data = SPOTIFY.next(data)
             results += data['items']
         return [Album(album['album']) for album in results]
-    
+
     def is_track_saved(self, track_id: str) -> bool:
         return SPOTIFY.current_user_saved_tracks_contains([track_id])[0]
 
@@ -251,7 +250,7 @@ class Client(URIBase):
             track = PlaylistTrack(track)
             results[idx] = track
         return results
-    
+
     def is_episode_saved(self, episode_id: str) -> bool:
         return SPOTIFY.current_user_saved_episodes_contains([episode_id])[0]
 
@@ -333,7 +332,7 @@ class Client(URIBase):
         limit: Optional[int] = 20,
         offset: Optional[int] = 0,
         time_range: Literal[
-            'long_term','short_term', 'medium_term'
+            'long_term', 'short_term', 'medium_term'
         ] = 'medium_term'
     ) -> List[Track]:
 

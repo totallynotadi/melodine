@@ -1,8 +1,6 @@
 import datetime
 from typing import List, Optional
 
-from typing_extensions import Self
-
 from melodine.configs import SPOTIFY, YTMUSIC
 from melodine.innertube import InnerTube
 from melodine.models.spotify.artist import Artist
@@ -11,7 +9,7 @@ from melodine.utils import Image, URIBase
 from melodine.models.base.track import TrackBase
 
 
-class Track(TrackBase, URIBase):
+class Track(URIBase):
     '''A Spotify Track Object
 
     Attributes
@@ -33,7 +31,7 @@ class Track(TrackBase, URIBase):
         "explicit"
     ]
 
-    def __new__(cls: Self, data, **kwargs):
+    def __new__(cls, data, **kwargs):
         # for some cases when a result contains an episode
         if data.get('episode'):
             return Episode(data)
