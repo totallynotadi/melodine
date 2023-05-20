@@ -22,28 +22,30 @@ _SEARCH_TYPES = {"artists", "albums",
 
 @dataclass
 class SpotifySearchResults(SearchResults):
-    ''' A dataclass for Search Results
+    ''' A dataclass for Spotify Search Results
 
     Inherits from the base SearchResults class.
 
     Attributes
     ----------
     artists : List[`:class:Artist`]
-        The artists of the search.
+        The artists in the search.
     playlists : List[`:class:Playlist`]
-        The playlists of the search.
+        The playlists in the search.
     albums : List[`:class:Album`]
-        The albums of the search.
+        The albums in the search.
     tracks : List[`:class:Track`]
-        The tracks of the search.
-    videos: List[`:class:Video`]
-        The videos from the search results
+        The tracks in the search.
+    shows : List[`:class:Show`]
+        The shows in the search.
+    episodes : List[`:class:Episode`]
+        The episodes in the search.
     '''
 
     artists: Optional[List[Artist]] = field(default_factory=list)
+    playlists: Optional[List[Playlist]] = field(default_factory=list)
     albums: Optional[List[Album]] = field(default_factory=list)
     tracks: Optional[List[Track]] = field(default_factory=list)
-    playlists: Optional[List[Playlist]] = field(default_factory=list)
 
     shows: Optional[List[Show]] = field(default_factory=list)
     episodes: Optional[List[Episode]] = field(default_factory=list)

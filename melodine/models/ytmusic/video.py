@@ -150,6 +150,7 @@ class Video(URIBase):
         innertube = InnerTube()
         video_info = innertube.player(self.id)
         self._url = video_info['streamingData']['adaptiveFormats'][-1]['url']
+        self._url = video_info['streamingData']['formats'][-2]['url']
 
         return self._url
 

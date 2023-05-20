@@ -15,7 +15,7 @@ _SEARCH_TYPES = {"artists", "albums", "tracks", "videos", "playlists"}
 
 @dataclass
 class YTMusicSearchResults(SearchResults):
-    ''' A dataclass for Search Results
+    ''' A dataclass for YTMusic Search Results
 
     Inherits from the SearchResultsBase class for.
 

@@ -1,11 +1,29 @@
-from typing import Any, List, Union
+from typing import Any, List, Optional, Union
+from dataclasses import dataclass, field
 
 from melodine.models.ytmusic import Video
 from melodine.configs import YT
+from melodine.utils import SearchResults
+
+
+@dataclass
+class YoutubeSearchResults(SearchResults):
+    ''' A dataclass for Search Results
+
+    Inherits from the base SearchResults class.
+
+    Attributes
+    ----------
+
+    videos: List[`:class:Video`]
+        The videos from the search results
+    '''
+
+    videos: Optional[List[Video]] = field(default_factory=list)
 
 
 def search(
-    q: str,  #pylint: disable=invalid-name
+    q: str,  # pylint: disable=invalid-name
     *,
     related_to_video_id: Union[str, None] = None,
     limit: int = 10,
@@ -21,10 +39,15 @@ def search(
     )
 
     for video in data['items']:
-        video['snippet']['videoId'] = video['id']['videoId']
-        if 'thumbnails' in video['snippet']:
-            video['snippet']['thumbnails'] = list(video['snippet']['thumbnails'].values())
-        video = Video(video['snippet'])
-        result.append(video)
+        video_kind = video['id']['kind'].split('#')[1]
+        if video_kind == 'video':
+            video['snippet']['videoId'] = video['id']['videoId']
+            if 'thumbnails' in video['snippet']:
+                video['snippet']['thumbnails'] = list(
+                    video['snippet']['thumbnails'].values())
+            video = Video(video['snippet'])
+            result.append(video)
 
-    return result
+    return YoutubeSearchResults(
+        videos=result
+    )
