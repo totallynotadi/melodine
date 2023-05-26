@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 import json
 import os
 from typing import TYPE_CHECKING
+from urllib.parse import parse_qs
+import requests
 
 import spotipy
 from ytmusicapi import YTMusic
@@ -9,6 +11,8 @@ from innertube import InnerTube
 
 from melodine.utils import singleton
 from melodine.configs import *
+from melodine.cipher import Cipher
+
 
 if TYPE_CHECKING:
     from youtube_dl import YoutubeDL
@@ -90,6 +94,12 @@ class Services:
         self._ytdl = None
         self._innertube = None
 
+        self._base_js_url = None
+        self._base_js_content = None
+
+        self._base_js_path = os.path.join(APP_DIR, "base-js-cache.json")
+        self._cipher = None
+
     @property
     def spotify(self) -> "spotipy.Spotify":
         if self._spotify is None:
@@ -139,6 +149,35 @@ class Services:
         if self._innertube is None:
             self._innertube = InnerTube("WEB_MUSIC")
         return self._innertube
+
+    def _get_base_js(self):
+        self._base_js_url = self.ytmusic.get_basejs_url()
+        return {
+            "base_js_url": self._base_js_url,
+            "base_js_content": requests.get(self._base_js_url).text,
+        }
+
+    @property
+    def basejs(self) -> str:
+        if os.path.exists(self._base_js_path):
+            with open(self._base_js_path, "w", encoding="utf-8") as basejs:
+                json.dump(self._get_base_js(), basejs)
+        with open(self._base_js_path, "r", encoding="utf") as basejs:
+            data: dict = json.load(basejs)
+            self._base_js_url, self._base_js_content = data.values()
+        return self._base_js_content
+
+    @property
+    def cipher(self) -> Cipher:
+        if self._cipher is None:
+            self._cipher = Cipher(js=self.basejs)
+        return self._cipher
+
+    def sign_url(self, sig_cipher: str) -> str:
+        sig_cipher = parse_qs(sig_cipher)
+        signature = self.cipher.get_signature(ciphered_signature=sig_cipher["s"][0])
+        signed_url = sig_cipher["url"][0] + "&sig=" + signature + "&ratebypass=yes"
+        return signed_url
 
     def spotify_auth(self, client_id, client_secret):
         return

@@ -133,7 +133,7 @@ class Playlist(URIBase):
             if self._data is None:
                 self._get_data()
             self._total_tracks = self._data["trackCount"]
-        return self._total_tracks
+        return int(self._total_tracks)
 
     @property
     def description(self) -> str:

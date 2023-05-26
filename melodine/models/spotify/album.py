@@ -51,7 +51,7 @@ class Album(URIBase):
         self.images = [Image(**image) for image in data.get("images", [])]
 
         self.artists = [Artist(artist) for artist in data.get("artists")]
-        self._track_count = data.get("total_tracks", 0)
+        self._total_tracks = data.get("total_tracks", 0)
         self._tracks = []
 
     def __repr__(self) -> str:

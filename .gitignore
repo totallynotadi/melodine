@@ -126,5 +126,4 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-test_one.py
-test_two.py
+ytmusic_test.py

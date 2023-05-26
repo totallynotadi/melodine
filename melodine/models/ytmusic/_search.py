@@ -52,7 +52,7 @@ def search(
     types: Optional[
         Iterable[Literal["tracks", "videos", "albums", "artists", "playlists"]]
     ] = [],
-    limit: Optional[int] = 15,
+    limit: Optional[int] = 20,
 ) -> YTMusicSearchResults:
     data = []
 
@@ -76,7 +76,7 @@ def search(
             results = service.ytmusic.search(q, filter=type, limit=limit)
             data.extend(results)
     else:
-        results = service.ytmusic.search(q)
+        results = service.ytmusic.search(q, limit=limit)
         data.extend(results)
 
     search_results = dict.fromkeys(_SEARCH_TYPES, [])
@@ -94,9 +94,18 @@ def search(
             ("tracks" if key == "song" else key if key.endswith("s") else key + "s"): [
                 _TYPES[_val["resultType"]](_val)
                 if _val["resultType"] != "artist"
-                else _TYPES[_val["resultType"]].from_search(_val)
+                else (
+                    _TYPES[_val["resultType"]].from_search(_val)
+                    if "browseId" in _val
+                    else _TYPES[_val["resultType"]].partial(_val["artists"][0])
+                )
                 for _val in value
             ]
             for key, value in search_results.items()
         }
     )
+    # for key, value in search_results.items():
+    #     print(key, "\n")
+    #     models = {}
+    #     for result in value:
+    #         print(result.keys(), result["resultType"], result["category"], "\n\n")

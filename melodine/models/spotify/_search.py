@@ -92,7 +92,12 @@ def search(
 
     return SpotifySearchResults(
         **{
-            key: [_TYPES[_val["type"]](_val) for _val in value["items"]]
+            key: [
+                _TYPES[_val["type"]](_val)
+                for _val in (
+                    value["items"] if len(list(filter(None, value["items"]))) else []
+                )
+            ]
             for key, value in data.items()
         }
     )

@@ -43,7 +43,9 @@ class Track(URIBase):
         self.artists = list(Artist(_artist) for _artist in data.get("artists", []))
 
         self.album = (
-            Album(data.get("album", {})) if "album" in data else kwargs.get("album", {})
+            Album(data.get("album", {}))
+            if "album" in data
+            else Album(kwargs.get("album", {}))
         )
 
         self.id = data.get("id", None)  # pylint: disable=invalid-name
@@ -74,20 +76,20 @@ class Track(URIBase):
     def url(self):
         """porperty getter for the Track URL"""
 
-        if self.url_:
-            return self.url_
+        if not self.url_:
+            video_id = service.ytmusic.search(
+                f"{self.artists[0].name} - {self.name}", filter="songs"
+            )[0]["videoId"]
 
-        video_id = service.ytmusic.search(
-            f"{self.artists[0].name} - {self.name}", filter="songs"
-        )[0]["videoId"]
+            # for ID of the top search results which could be a video (that's not implemented yet)
+            # video_id = service.ytmusic.search(f"{self.artists[0].name} - {self.name}")[0]['videoId']
 
-        # for ID of the top search results which could be a video (that's not implemented yet)
-        # video_id = service.ytmusic.search(f"{self.artists[0].name} - {self.name}")[0]['videoId']
+            video_info = service.innertube.player(video_id)
 
-        video_info = InnerTube().player(video_id)
-
-        # self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
-        self.url_ = video_info["streamingData"]["formats"][-1]["url"]
+            # self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
+            self.url_ = service.sign_url(
+                video_info["streamingData"]["adaptiveFormats"][-1]["signatureCipher"]
+            )
 
         return self.url_
 

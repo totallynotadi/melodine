@@ -25,7 +25,8 @@ class Track(URIBase):
         "images",
         "_artists",
         "_album",
-        "_url" "_recs",
+        "_url",
+        "_recs",
         "_recs_offset",
     ]
 
@@ -98,6 +99,7 @@ class Track(URIBase):
     @property
     def url(self) -> str:
         """fetch the playback url for the track."""
+
         if not self._url:
             video_id = (
                 service.ytmusic.search(
@@ -107,13 +109,14 @@ class Track(URIBase):
                 else self.id
             )
 
-            video_info = InnerTube().player(video_id)
+            video_info = service.innertube.player(video_id)
 
             # print(video_info['streamingData']['expiresInSeconds'])
             # print(video_info['streamingData']['formats'][0].keys())
-            self._url = video_info["streamingData"]["formats"][-1]["url"]
+            self._url = service.sign_url(
+                video_info["streamingData"]["adaptiveFormats"][-1]["signatureCipher"]
+            )
 
-            return self._url
         return self._url
 
     def cache_url(self) -> None:

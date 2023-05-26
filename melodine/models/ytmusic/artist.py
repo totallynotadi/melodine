@@ -77,8 +77,8 @@ class Artist(URIBase):
         also accomodates for artist data from artist['related']
             `{'title': '', 'browseId': '', 'subscribers': '', 'thumbnails': ''}`
         """
-        data["name"] = data.pop("artist", data.pop("title", str()))
-        data["channelId"] = data.pop("browseId")
+        data["name"] = data.get("artist", data.get("title", str()))
+        data["channelId"] = data.get("browseId")
         return cls(data=data)
 
     @property

@@ -3,7 +3,6 @@ from typing import Dict, List, Union
 from melodine.utils import URIBase, Image
 
 from melodine.services import service
-from innertube import InnerTube
 from melodine.models import ytmusic
 from melodine.models.ytmusic.artist import Artist
 from melodine.models.ytmusic.track import Track
@@ -92,7 +91,7 @@ class Video(URIBase):
                     User,
                 ),
             ):
-                # since a video is'nt neccessarily owned by an artist each time,
+                # since a video isn't neccessarily owned by an artist each time,
                 # so it's from a user in case it's not from an artist.
                 try:
                     user = service.ytmusic.get_user(artist["id"])
@@ -142,15 +141,15 @@ class Video(URIBase):
     def url(self) -> str:
         """Get the playback URL for a track or video
 
-        retrieves the higest quality adaptive track by default
+        retrieves the higest quality adaptive track URL by default
         """
         if self._url:
             return self._url
 
-        innertube = InnerTube()
-        video_info = innertube.player(self.id)
-        self._url = video_info["streamingData"]["adaptiveFormats"][-1]["url"]
-        # self._url = video_info['streamingData']['formats'][-2]['url']
+        video_info = service.innertube.player(self.id)
+        self._url = service.sign_url(
+            video_info["streamingData"]["adaptiveFormats"][-1]["signatureCipher"]
+        )
 
         return self._url
 
