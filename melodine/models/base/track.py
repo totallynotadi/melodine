@@ -5,20 +5,18 @@ class TrackBase(metaclass=ABCMeta):
     @classmethod
     def __subclasshook__(cls, subclass):
         return (
-            hasattr(subclass, 'id') and
-            hasattr(subclass, 'name') and
-            hasattr(subclass, 'href') and
-            hasattr(subclass, 'uri') and
-            hasattr(subclass, 'explicit') and
-            hasattr(subclass, 'duration') and
-            hasattr(subclass, 'images') and
-
-            hasattr(subclass, 'artists') and
-            hasattr(subclass, 'album') and
-            hasattr(subclass, 'url') and
-
-            hasattr(subclass, 'get_recommendations') and callable(
-                subclass.get_recommendations)
+            hasattr(subclass, "id")
+            and hasattr(subclass, "name")
+            and hasattr(subclass, "href")
+            and hasattr(subclass, "uri")
+            and hasattr(subclass, "explicit")
+            and hasattr(subclass, "duration")
+            and hasattr(subclass, "images")
+            and hasattr(subclass, "artists")
+            and hasattr(subclass, "album")
+            and hasattr(subclass, "url")
+            and hasattr(subclass, "get_recommendations")
+            and callable(subclass.get_recommendations)
         )
 
     # @property

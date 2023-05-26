@@ -1,12 +1,13 @@
 from typing import Dict, List, Literal, Optional
 
 from melodine.utils import Image, URIBase
-from melodine.configs import SPOTIFY
+
+from melodine.services import service
 from melodine.models.base.artist import ArtistBase
 
 
 class Artist(URIBase):
-    '''
+    """
     Attributes
     ----------
         id: `str`
@@ -25,7 +26,7 @@ class Artist(URIBase):
     -------
         artist_top_tracks: `List[Track]`
             a list of top tracks (a list containing track objects for the top tracks)
-    '''
+    """
 
     __slots__ = (
         "followers",
@@ -39,16 +40,13 @@ class Artist(URIBase):
     )
 
     def __init__(self, data: Dict):
-        self.id = data.get('id')  # pylint: disable=invalid-name
-        self.uri = data.get('uri', None)
-        self.href = data.get('external_urls').get('spotify', None)
-        self.name = data.get('name', None)
-        self.genres = data.get('genres', None)
-        self.followers = data.get('followers', {}).get('total', None)
-        self.images = [
-            Image(**image)
-            for image in data.get('images', [])
-        ]
+        self.id = data.get("id")  # pylint: disable=invalid-name
+        self.uri = data.get("uri", None)
+        self.href = data.get("external_urls").get("spotify", None)
+        self.name = data.get("name", None)
+        self.genres = data.get("genres", None)
+        self.followers = data.get("followers", {}).get("total", None)
+        self.images = [Image(**image) for image in data.get("images", [])]
 
         self._albums = list()
 
@@ -63,21 +61,21 @@ class Artist(URIBase):
 
     @property
     def total_albums(self):
-        return SPOTIFY.artist_albums(self.id, limit=1)['total']
+        return service.spotify.artist_albums(self.id, limit=1)["total"]
 
     def get_albums(
         self,
         limit: Optional[int] = 20,
         offset: Optional[int] = 0,
-        album_type: Literal['album', 'single',
-                            'appears_on', 'compilation'] = 'album'
+        album_type: Literal["album", "single", "appears_on", "compilation"] = "album",
     ) -> List:
         from .album import Album
 
         if len(self._albums) == 0:
-            data = SPOTIFY.artist_albums(
-                self.id, limit=limit, offset=offset, album_type=album_type)
-            self._albums = list(Album(album) for album in data['items'])
+            data = service.spotify.artist_albums(
+                self.id, limit=limit, offset=offset, album_type=album_type
+            )
+            self._albums = list(Album(album) for album in data["items"])
         return self._albums
 
     def get_all_albums(self):
@@ -86,18 +84,18 @@ class Artist(URIBase):
         offset = 0
 
         while len(self._albums) < self.total_albums:
-            data = SPOTIFY.artist_albums(self.id, limit=50)
+            data = service.spotify.artist_albums(self.id, limit=50)
 
             offset += 50
-            self._albums.extend(list(Album(album) for album in data['items']))
+            self._albums.extend(list(Album(album) for album in data["items"]))
         return list(set(self._albums))
 
     def tracks(self):
         from .track import Track
 
-        top = SPOTIFY.artist_top_tracks(self.id)
-        return list(Track(track) for track in top['tracks'])
+        top = service.spotify.artist_top_tracks(self.id)
+        return list(Track(track) for track in top["tracks"])
 
     def related_artists(self):
-        related = SPOTIFY.artist_related_artists(self.id)
-        return list(Artist(artist) for artist in related['artists'])
+        related = service.spotify.artist_related_artists(self.id)
+        return list(Artist(artist) for artist in related["artists"])
