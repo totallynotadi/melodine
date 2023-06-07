@@ -50,8 +50,8 @@ class User(URIBase):
         self._data = service.ytmusic.get_user(self.id)
 
     @classmethod
-    def from_id(cls, data: Dict) -> "User":
-        return cls(data={"id": data})
+    def from_id(cls, id: str) -> "User":
+        return cls(data={"id": id})
 
     @property
     def total_uploads(self) -> int:

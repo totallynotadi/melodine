@@ -57,7 +57,7 @@ class Artist(URIBase):
         self._data = service.ytmusic.get_artist(self.id)
 
     @classmethod
-    def from_id(cls, id: str):
+    def from_id(cls, id: str) -> "Artist":
         return cls(data={"channelId": id})
 
     @classmethod

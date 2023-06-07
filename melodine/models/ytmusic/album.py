@@ -51,14 +51,6 @@ class Album(URIBase):
     def _get_data(self) -> None:
         self._data = service.ytmusic.get_album(self.id)
 
-    @property
-    def id(self) -> str:
-        if not self._id:
-            self._id = service.ytmusic.get_album_browse_id(
-                self._data.get("audioPlaylistId")
-            )
-        return self._id
-
     @classmethod
     def from_id(cls, id: str) -> "Album":
         # the given id could be a playlistsId or a browseId.
@@ -74,6 +66,14 @@ class Album(URIBase):
             `{'name': '<album-name>', 'id': '<album-id>'}`
         """
         return cls(data={"title": data["name"], "browseId": data["id"]})
+
+    @property
+    def id(self) -> str:
+        if not self._id:
+            self._id = service.ytmusic.get_album_browse_id(
+                self._data.get("audioPlaylistId")
+            )
+        return self._id
 
     @property
     def name(self) -> str:

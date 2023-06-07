@@ -23,19 +23,6 @@ class YTMusicSearchResults(SearchResults):
     """A dataclass for YTMusic Search Results
 
     Inherits from the SearchResultsBase class for.
-
-    Attributes
-    ----------
-    artists : List[`:class:Artist`]
-        The artists of the search.
-    playlists : List[`:class:Playlist`]
-        The playlists of the search.
-    albums : List[`:class:Album`]
-        The albums of the search.
-    tracks : List[`:class:Track`]
-        The tracks of the search.
-    videos: List[`:class:Video`]
-        The videos from the search results
     """
 
     top_result: Optional[Union[Track, Artist, Album]] = field(default_factory=list)
@@ -113,8 +100,3 @@ def search(
             for key, value in search_results.items()
         }
     )
-    # for key, value in search_results.items():
-    #     print(key, "\n")
-    #     models = {}
-    #     for result in value:
-    #         print(result.keys(), result["resultType"], result["category"], "\n\n")
