@@ -7,21 +7,23 @@ from melodine.models.spotify.episode import Episode
 from melodine.models.spotify.device import Device
 from melodine.models.spotify.user import User
 from melodine.models.spotify.player import Player
+from melodine.models.spotify.category import Category
 from melodine.models.spotify._search import search
 from melodine.models.spotify.client import client
 
 # client = Client()
 
 __all__ = [
-    'Track',
-    'Artist',
-    'Album',
-    'Playlist',
-    'User',
-    'Player',
-    'Show',
-    'Episode',
-    'Device',
-    'search',
-    'client'
+    "Track",
+    "Artist",
+    "Album",
+    "Playlist",
+    "User",
+    "Player",
+    "Show",
+    "Episode",
+    "Device",
+    "Category",
+    "search",
+    "client",
 ]

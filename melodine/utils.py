@@ -32,7 +32,7 @@ class Image:
 
 @dataclass
 class SearchResults:
-    """ Base class for representing search results from a source. """
+    """Base class for representing search results from a source."""
 
     def __add__(self, other: "SearchResults"):
         self_items = self.__dict__.items()
@@ -51,11 +51,11 @@ class SearchResults:
 
 
 class URIBase:
-    '''
+    """
     Base class for generic dataclass dunder methods defined for objects with a `uri` attribute.
 
     All melodine models must inherit from `URIBase`
-    '''
+    """
 
     uri = repr(None)
     id = repr(None)
@@ -64,9 +64,7 @@ class URIBase:
         return hash(self.uri)
 
     def __eq__(self, __o: object) -> bool:
-        return (
-            type(self) is type(__o) and self.uri == __o.uri
-        )
+        return type(self) is type(__o) and self.uri == __o.uri
 
     def __ne__(self, __o: object) -> bool:
         return not self.__eq__(__o)
@@ -79,13 +77,15 @@ class URIBase:
 
 
 def singleton(cls):
-    '''class definitions marked singleton remember created instances and return that one same instance each time its object is instantialted.
+    """class definitions marked singleton remember created instances and return that one same instance each time its object is instantialted.
 
-    i.e. only one instance of an object can exist at any given time.'''
+    i.e. only one instance of an object can exist at any given time."""
+
     @functools.wraps(cls)
     def wrapper_singleton(*args, **kwargs):
         if not wrapper_singleton.instance:
             wrapper_singleton.instance = cls(*args, **kwargs)
         return wrapper_singleton.instance
+
     wrapper_singleton.instance = None
     return wrapper_singleton

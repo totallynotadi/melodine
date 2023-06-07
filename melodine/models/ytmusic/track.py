@@ -12,7 +12,7 @@ class Track(URIBase):
     Attributes
     ---------
     id: str
-        The Spotify ID for the Track
+        The YTMusic ID for the Track
     """
 
     __slots__ = [
@@ -80,6 +80,8 @@ class Track(URIBase):
         """Get a list of all Artists from the track"""
         from .artist import Artist
 
+        if len(self._artists) == 0:
+            return self.album.artists
         for idx, artist in enumerate(self._artists.copy()):
             if not isinstance(artist, Artist):
                 artist = Artist.partial(artist)
@@ -120,7 +122,10 @@ class Track(URIBase):
         return self._url
 
     def cache_url(self) -> None:
-        """just a dummy call to trigger the url fetching."""
+        """just a dummy call to trigger the url fetching.
+
+        ideally in a separate thread, where the track's URL is required in the near future.
+        """
         if not self.url:
             self._url = self.url
 

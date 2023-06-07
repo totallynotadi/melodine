@@ -71,7 +71,7 @@ class SpotifyCredentials:
     client_id: str = CLIENT_ID
     client_secret: str = CLIENT_SECRET
     scopes: str = SCOPES
-    cache_path: str = CACHE_PATH
+    cache_path: str = APP_DIR
 
 
 @dataclass
@@ -103,14 +103,18 @@ class Services:
     @property
     def spotify(self) -> "spotipy.Spotify":
         if self._spotify is None:
-            if os.path.exists(CACHE_PATH):
+            if os.path.exists(self.config.spotify_creds.cache_path):
                 self._spotify = spotipy.Spotify(
                     auth_manager=spotipy.SpotifyOAuth(
                         scope=self.config.spotify_creds.scopes,
                         client_id=self.config.spotify_creds.client_id,
                         client_secret=self.config.spotify_creds.client_secret,
                         redirect_uri="http://localhost:8080/",
-                        cache_handler=spotipy.CacheFileHandler(cache_path=CACHE_PATH),
+                        cache_handler=spotipy.CacheFileHandler(
+                            cache_path=os.path.join(
+                                self.config.spotify_creds.cache_path, "spotify-cache"
+                            )
+                        ),
                     )
                 )
             else:

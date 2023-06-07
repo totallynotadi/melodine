@@ -27,6 +27,10 @@ class Show(URIBase):
     def __repr__(self) -> str:
         return f"<spotify.Show: {self.name!r}>"
 
+    @classmethod
+    def from_id(cls, id: str) -> "Show":
+        return cls(data=service.spotify.show(id))
+
     @property
     def episodes(
         self, *, limit: Optional[int] = 10, offset: Optional[int] = 0
@@ -37,18 +41,18 @@ class Show(URIBase):
 
         return [Episode(episode) for episode in data["items"]]
 
-    @cached_property
-    def get_all_episodes(self) -> List[Episode]:
-        """Get a list of all the episodes of a show"""
-        result = []
-        offset = 0
+    # @cached_property
+    # def get_all_episodes(self) -> List[Episode]:
+    #     """Get a list of all the episodes of a show"""
+    #     result = []
+    #     offset = 0
 
-        while len(result) < self.total_episodes:
-            data = service.spotify.show_episodes(self.id, limit=10, offset=offset)
-            result += [Episode(episode) for episode in data["items"]]
-            offset += 10
+    #     while len(result) < self.total_episodes:
+    #         data = service.spotify.show_episodes(self.id, limit=10, offset=offset)
+    #         result += [Episode(episode) for episode in data["items"]]
+    #         offset += 10
 
-        return result
+    #     return result
 
     # def is_saved(self) -> bool:
     #     return service.spotify.current_user_saved_shows_contains([self.id])[0]

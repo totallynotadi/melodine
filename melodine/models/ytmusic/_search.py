@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from itertools import groupby
-from typing import Iterable, List, Literal, Optional
+from typing import Iterable, List, Literal, Optional, Union
 
 from melodine.services import service
 from melodine.models.ytmusic import Album, Artist, Playlist, Track, Video
@@ -38,12 +38,16 @@ class YTMusicSearchResults(SearchResults):
         The videos from the search results
     """
 
-    tracks: Optional[List[Track]] = field(default_factory=list)
-    albums: Optional[List[Album]] = field(default_factory=list)
-    artists: Optional[List[Artist]] = field(default_factory=list)
-    playlists: Optional[List[Playlist]] = field(default_factory=list)
+    top_result: Optional[Union[Track, Artist, Album]] = field(default_factory=list)
+    more_from_youtube: Optional[List[Union[Track, Artist, Album]]] = field(
+        default_factory=list
+    )
 
+    tracks: Optional[List[Track]] = field(default_factory=list)
     videos: Optional[List[Video]] = field(default_factory=list)
+    albums: Optional[List[Album]] = field(default_factory=list)
+    playlists: Optional[List[Playlist]] = field(default_factory=list)
+    artists: Optional[List[Artist]] = field(default_factory=list)
 
 
 def search(
@@ -79,19 +83,24 @@ def search(
         results = service.ytmusic.search(q, limit=limit)
         data.extend(results)
 
-    search_results = dict.fromkeys(_SEARCH_TYPES, [])
+    data = groupby(data, lambda x: x["category"])
+    search_results = {}
 
-    def key_func(x):
-        return x["resultType"]
-
-    for key, value in groupby(sorted(data, key=key_func), key_func):
-        search_results[key + "s"] = list(value)
-
-    search_results["tracks"] = search_results.pop("songs", [])
+    for key, val in data:
+        new_key = (
+            "More from YouTube"
+            if key is None
+            else "Playlists"
+            if key == "Community playlists"
+            else "Tracks"
+            if key == "Songs"
+            else key
+        )
+        search_results["_".join(new_key.lower().split(" "))] = list(val)
 
     return YTMusicSearchResults(
         **{
-            ("tracks" if key == "song" else key if key.endswith("s") else key + "s"): [
+            key: [
                 _TYPES[_val["resultType"]](_val)
                 if _val["resultType"] != "artist"
                 else (

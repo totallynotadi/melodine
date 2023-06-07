@@ -19,20 +19,22 @@ class Track(URIBase):
     """
 
     __slots__ = [
-        "artists",
-        "album",
         "id",
         "name",
-        "uri",
         "href",
+        "uri",
         "duration",
-        "url_",
-        "images",
         "explicit",
+        "artists",
+        "album",
+        "_url",
+        "images",
     ]
 
     def __new__(cls, data, **kwargs):
         # for some cases when a result contains an episode
+        #
+        # for example a playlist might also contain episodes besides just tracks
         if data.get("episode"):
             return Episode(data)
         return super().__new__(cls)
@@ -54,7 +56,7 @@ class Track(URIBase):
         self.href = "https://open.spotify.com/track/" + self.id
         self.duration = int(data.get("duration_ms") / 1000)
         self.explicit = data.get("explicit", False)
-        self.url_ = []
+        self._url = []
 
         if "images" in data:
             self.images = [Image(**image) for image in data.get("images", [])]
@@ -72,26 +74,26 @@ class Track(URIBase):
     #         service.spotify.search("ritchrd - paris", type="track")["tracks"]["items"][0]
     #     )
 
+    @classmethod
+    def from_id(cls, id: str) -> "Track":
+        return cls(data=service.spotify.track(id))
+
     @property
     def url(self):
         """porperty getter for the Track URL"""
 
-        if not self.url_:
+        if not self._url:
             video_id = service.ytmusic.search(
                 f"{self.artists[0].name} - {self.name}", filter="songs"
             )[0]["videoId"]
 
-            # for ID of the top search results which could be a video (that's not implemented yet)
-            # video_id = service.ytmusic.search(f"{self.artists[0].name} - {self.name}")[0]['videoId']
-
             video_info = service.innertube.player(video_id)
 
-            # self.url_ = video_info['streamingData']['adaptiveFormats'][-1]['url']
-            self.url_ = service.sign_url(
+            self._url = service.sign_url(
                 video_info["streamingData"]["adaptiveFormats"][-1]["signatureCipher"]
             )
 
-        return self.url_
+        return self._url
 
     def cache_url(self) -> None:
         """just a dummy call to trigger the url fetching"""

@@ -31,6 +31,10 @@ class Episode(URIBase):
     def __repr__(self) -> str:
         return f"<spotify.Episode: {self.name!r}>"
 
+    @classmethod
+    def from_id(cls, id: str) -> "Episode":
+        return cls(data=service.spotify.episode(id))
+
     @property
     def show(self):
         from .show import Show

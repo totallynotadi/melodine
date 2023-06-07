@@ -59,6 +59,10 @@ class Playlist(URIBase):  # pylint: disable=too-many-instance-attributes
     def __repr__(self) -> str:
         return f"melo.Playlist - {(self.name or self.id or self.uri)!r}"
 
+    @classmethod
+    def from_id(cls, id: str) -> "Playlist":
+        return cls(data=service.spotify.playlist(id))
+
     def get_tracks(
         self, limit: Optional[int] = 20, offset: Optional[int] = 0
     ) -> List[PlaylistTrack]:

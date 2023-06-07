@@ -19,6 +19,10 @@ class User(URIBase):
     def __repr__(self):
         return f"<spotify.User: {(self.name or self.id)!r}>"
 
+    @classmethod
+    def from_id(cls, id: str) -> "User":
+        return cls(data=service.spotify.user(id))
+
     @property
     def images(self):
         """thumbnails for a user's profile"""
@@ -33,23 +37,23 @@ class User(URIBase):
         self, limit: Optional[int] = 30, offset: Optional[int] = 0
     ) -> List[Playlist]:
         """Get a user's playlists"""
-        data = service.spotify.user_playlists(self.id, limit=limit, offset=offset)
+        data = service.spotify.current_user_playlists(limit=limit, offset=offset)
 
         return [Playlist(playlist) for playlist in data.get("items", [])]
 
-    @cached_property
-    def all_user_playlists(self) -> List[Playlist]:
-        """Get all playlists from a user"""
-        data = {"next": "<placeholder>"}
-        results = []
+    # @cached_property
+    # def all_user_playlists(self) -> List[Playlist]:
+    #     """Get all playlists from a user"""
+    #     data = {"next": "<placeholder>"}
+    #     results = []
 
-        while data.get("next"):
-            if data["next"] == "<placeholder>":
-                data = service.spotify.user_playlists(self.id)
-            else:
-                data = service.spotify.next(data)
-            results += data["items"]
-        return [Playlist(playlist) for playlist in data]
+    #     while data.get("next"):
+    #         if data["next"] == "<placeholder>":
+    #             data = service.spotify.user_playlists(self.id)
+    #         else:
+    #             data = service.spotify.next(data)
+    #         results += data["items"]
+    #     return [Playlist(playlist) for playlist in data]
 
     def is_followed(self) -> bool:
         return service.spotify.current_user_following_users([self.id])[0]

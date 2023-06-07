@@ -26,18 +26,23 @@ class SpotifySearchResults(SearchResults):
 
     Attributes
     ----------
-    artists : List[`:class:Artist`]
-        The artists in the search.
-    playlists : List[`:class:Playlist`]
-        The playlists in the search.
-    albums : List[`:class:Album`]
-        The albums in the search.
-    tracks : List[`:class:Track`]
-        The tracks in the search.
-    shows : List[`:class:Show`]
-        The shows in the search.
-    episodes : List[`:class:Episode`]
-        The episodes in the search.
+    `artists` - `List[Artist]`
+        A list of all the artists in the search results.
+
+    `playlists` - `List[Playlist]`
+        A list of all the playlists in the search results.
+
+    `albums` - `List[Album]`
+        A list of all the albums in the search results.
+
+    `tracks` - `List[Track]`
+        A list of all the tracks in the search results.
+
+    `shows` - `List[Show]`
+        A list of all the shows in the search results.
+
+    `episodes` - `List[Episode]`
+        A list of all the episodes in the search results.
     """
 
     artists: Optional[List[Artist]] = field(default_factory=list)

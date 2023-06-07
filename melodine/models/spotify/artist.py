@@ -53,6 +53,10 @@ class Artist(URIBase):
     def __repr__(self) -> str:
         return f"melo.Artist - {(self.name or self.id or self.uri)!r}"
 
+    @classmethod
+    def from_id(cls, id: str) -> "Artist":
+        return cls(data=service.spotify.artist(id))
+
     @property
     def albums(self):
         if not self._albums:

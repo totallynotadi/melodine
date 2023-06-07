@@ -57,6 +57,10 @@ class Album(URIBase):
     def __repr__(self) -> str:
         return f"melo.Album - {(self.name or self.id or self.uri)!r}"
 
+    @classmethod
+    def from_id(cls, id: str) -> "Album":
+        return cls(data=service.spotify.album(id))
+
     @property
     def total_tracks(self) -> int:
         """get all the tracks from an album"""

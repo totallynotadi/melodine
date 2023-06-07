@@ -9,7 +9,7 @@ TEMPFILES_DIR = os.path.join(APP_DIR, ".tempfiles")
 
 
 # spotify credentials
-CLIENT_ID = "6254b7703d8540a48b4795d82eae9300"
+CLIENT_ID = "22e27810dff0451bb93a71beb5e4b70d"
 CLIENT_SECRET = "6254b7703d8540a48b4795d82eae9300"
 
 # api key for pyyoutube (youtube data api usage)

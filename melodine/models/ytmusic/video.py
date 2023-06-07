@@ -56,7 +56,7 @@ class Video(URIBase):
         self._data = service.ytmusic.get_song(self.id)["videoDetails"]
 
     @classmethod
-    def from_id(cls, id) -> "Video":
+    def from_id(cls, id: str) -> "Video":
         return cls(data={"videoId": id})
 
     @classmethod
