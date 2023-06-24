@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import json
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, Optional
 from urllib.parse import parse_qs
 import requests
 
@@ -10,7 +10,7 @@ from ytmusicapi import YTMusic
 from innertube import InnerTube
 
 from melodine.utils import singleton
-from melodine.configs import *
+from melodine import configs as CONFIG
 from melodine.cipher import Cipher
 
 
@@ -63,15 +63,14 @@ YTM_HEADERS = {
     "x-youtube-client-name": "67",
     "x-youtube-client-version": "1.20220119.00.00",
 }
-YTM_HEADERS["cookie"] = YTMUSIC_COOKIE
 
 
 @dataclass
 class SpotifyCredentials:
-    client_id: str = CLIENT_ID
-    client_secret: str = CLIENT_SECRET
+    client_id: str = CONFIG.CLIENT_ID
+    client_secret: str = CONFIG.CLIENT_SECRET
     scopes: str = SCOPES
-    cache_path: str = APP_DIR
+    app_path: str = CONFIG.APP_DIR
 
 
 @dataclass
@@ -79,8 +78,9 @@ class ConfigParams:
     # ytm-cookies, yt-key, spotify-creds
     spotify_creds: SpotifyCredentials = field(default_factory=SpotifyCredentials)
     ytm_headers: dict = field(default_factory=lambda: YTM_HEADERS)
-    yt_api_key: str = YT_API_KEY
-    ytdl_config: dict = field(default_factory=lambda: YTDL_CONFIG)
+    ytm_cookie: str = field(default_factory=lambda: CONFIG.YTMUSIC_COOKIE)
+    yt_api_key: str = CONFIG.YT_API_KEY
+    ytdl_config: dict = field(default_factory=lambda: CONFIG.YTDL_CONFIG)
 
 
 @singleton
@@ -88,22 +88,22 @@ class Services:
     def __init__(self, config_params: ConfigParams = ConfigParams()):
         self.config = config_params
 
-        self._spotify = None
-        self._ytmusic = None
-        self._yt = None
-        self._ytdl = None
-        self._innertube = None
+        self._spotify: Optional[spotipy.Spotify] = None
+        self.__ytmusic: Optional[YTMusic] = None
+        self.__yt: Optional[pyyoutube.Api] = None
+        self.__ytdl: Optional[YoutubeDL] = None
+        self.__innertube: Optional[InnerTube] = None
 
-        self._base_js_url = None
-        self._base_js_content = None
+        self._base_js_url: Optional[str] = None
+        self._base_js_content: Optional[str] = None
 
-        self._base_js_path = os.path.join(APP_DIR, "base-js-cache.json")
-        self._cipher = None
+        self._base_js_path = os.path.join(CONFIG.APP_DIR, "base-js-cache.json")
+        self._cipher: Optional[Cipher] = None
 
     @property
     def spotify(self) -> "spotipy.Spotify":
         if self._spotify is None:
-            if os.path.exists(self.config.spotify_creds.cache_path):
+            if os.path.exists(self.config.spotify_creds.app_path):
                 self._spotify = spotipy.Spotify(
                     auth_manager=spotipy.SpotifyOAuth(
                         scope=self.config.spotify_creds.scopes,
@@ -112,7 +112,7 @@ class Services:
                         redirect_uri="http://localhost:8080/",
                         cache_handler=spotipy.CacheFileHandler(
                             cache_path=os.path.join(
-                                self.config.spotify_creds.cache_path, "spotify-cache"
+                                self.config.spotify_creds.app_path, "spotify-cache"
                             )
                         ),
                     )
@@ -126,33 +126,42 @@ class Services:
                 )
         return self._spotify
 
+    def _ytmusic(self, cookie: Optional[str] = None) -> YTMusic:
+        """exists only to get a YTM object explicitly from the cookie given as the param"""
+        return (
+            YTMusic(auth=json.dumps(self.config.ytm_headers.update({"cookie": cookie})))
+            if cookie
+            else self.ytmusic
+        )
+
     @property
     def ytmusic(self) -> YTMusic:
-        if self._ytmusic is None:
-            self._ytmusic = YTMusic(auth=json.dumps(self.config.ytm_headers))
-        return self._ytmusic
+        if self.__ytmusic is None:
+            self.config.ytm_headers.update({"cookie": CONFIG.YTMUSIC_COOKIE})
+            self.__ytmusic = YTMusic(auth=json.dumps(self.config.ytm_headers))
+        return self.__ytmusic
 
     @property
     def yt(self) -> "YoutubeDL":
         from youtube_dl import YoutubeDL
 
-        if self._ytdl is None:
-            self._ytdl = YoutubeDL(self.config.ytdl_config)
-        return self._ytdl
+        if self.__ytdl is None:
+            self.__ytdl = YoutubeDL(self.config.ytdl_config)
+        return self.__ytdl
 
     @property
     def ytdl(self) -> "pyyoutube.Api":
         import pyyoutube
 
-        if self._yt is None:
-            self._yt = pyyoutube.Api(self.config.yt_api_key)
-        return self._yt
+        if self.__yt is None:
+            self.__yt = pyyoutube.Api(self.config.yt_api_key)
+        return self.__yt
 
     @property
     def innertube(self) -> InnerTube:
-        if self._innertube is None:
-            self._innertube = InnerTube("WEB_MUSIC")
-        return self._innertube
+        if self.__innertube is None:
+            self.__innertube = InnerTube("WEB_MUSIC")
+        return self.__innertube
 
     def _get_base_js(self):
         self._base_js_url = self.ytmusic.get_basejs_url()
@@ -167,8 +176,11 @@ class Services:
             with open(self._base_js_path, "w", encoding="utf-8") as basejs:
                 json.dump(self._get_base_js(), basejs)
         with open(self._base_js_path, "r", encoding="utf") as basejs:
-            data: dict = json.load(basejs)
-            self._base_js_url, self._base_js_content = data.values()
+            data: Dict[str, str] = json.load(basejs)
+            (
+                self._base_js_url,
+                self._base_js_content,
+            ) = data.values()
         return self._base_js_content
 
     @property
@@ -178,9 +190,9 @@ class Services:
         return self._cipher
 
     def sign_url(self, sig_cipher: str) -> str:
-        sig_cipher = parse_qs(sig_cipher)
-        signature = self.cipher.get_signature(ciphered_signature=sig_cipher["s"][0])
-        signed_url = sig_cipher["url"][0] + "&sig=" + signature + "&ratebypass=yes"
+        parsed_query = parse_qs(sig_cipher)
+        signature = self.cipher.get_signature(ciphered_signature=parsed_query["s"][0])
+        signed_url = parsed_query["url"][0] + "&sig=" + signature + "&ratebypass=yes"
         return signed_url
 
     def spotify_auth(self, client_id, client_secret):
@@ -192,5 +204,5 @@ class Services:
 
 service = Services()
 
-if os.path.exists(TEMPFILES_DIR):
-    os.rmdir(TEMPFILES_DIR)
+if os.path.exists(CONFIG.TEMPFILES_DIR):
+    os.rmdir(CONFIG.TEMPFILES_DIR)

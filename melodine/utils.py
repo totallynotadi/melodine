@@ -1,5 +1,13 @@
 from dataclasses import dataclass
 import functools
+from enum import Enum
+from typing import Dict, FrozenSet, List, Optional
+from melodine.base.misc import SearchResultsBase
+
+from melodine.base.track import TrackBase
+from melodine.base.artist import ArtistBase
+from melodine.base.album import AlbumBase
+from melodine.base.playlist import PlaylistBase
 
 
 class Image:
@@ -30,50 +38,12 @@ class Image:
         return type(self) is type(other) and self.url == other.url
 
 
-@dataclass
-class SearchResults:
-    """Base class for representing search results from a source."""
-
-    def __add__(self, other: "SearchResults"):
-        self_items = self.__dict__.items()
-        for attr, val in other.__dict__.items():
-            if attr not in self_items:
-                self.__setattr__(attr, val)
-            else:
-                self.__setattr__(attr, self.__getattribute__(attr).extend(val))
-        return self
-
-    def __bool__(self):
-        return any(self.__dict__.values())
-
-    def __repr__(self) -> str:
-        return f"<melo.SearchResults: {id(self)}>"
-
-
-class URIBase:
-    """
-    Base class for generic dataclass dunder methods defined for objects with a `uri` attribute.
-
-    All melodine models must inherit from `URIBase`
-    """
-
-    uri = repr(None)
-    id = repr(None)
-
-    def __hash__(self):
-        return hash(self.uri)
-
-    def __eq__(self, __o: object) -> bool:
-        return type(self) is type(__o) and self.uri == __o.uri
-
-    def __ne__(self, __o: object) -> bool:
-        return not self.__eq__(__o)
-
-    def __bool__(self):
-        return not not self.id
-
-    def __str__(self) -> str:
-        return self.uri
+# @dataclass(frozen=True)
+# class SearchResults(SearchResultsBase):
+#     tracks: Optional[List[TrackBase]]
+#     artists: Optional[List[ArtistBase]]
+#     albums: Optional[List[AlbumBase]]
+#     playlists: Optional[List[PlaylistBase]]
 
 
 def singleton(cls):
@@ -89,3 +59,15 @@ def singleton(cls):
 
     wrapper_singleton.instance = None
     return wrapper_singleton
+
+
+class CacheStrategy(Enum):
+    NONE: bool = False
+    MODERATE: None = None
+    AGGRESSIVE: bool = True
+
+
+# weird workaround for using slots on dataclasses
+# see https://stackoverflow.com/a/63658478/15146028
+def slots(anotes: Dict[str, object]) -> FrozenSet[str]:
+    return frozenset(anotes.keys())

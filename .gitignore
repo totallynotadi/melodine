@@ -126,4 +126,7 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# custom
 ytmusic_test.py
+spotify_test.py
+notes.md
