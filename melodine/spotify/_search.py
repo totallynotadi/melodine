@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Iterable, List, Optional
 
-from melodine.utils import SearchResults
+from melodine.base.misc import SearchResultsBase
 from melodine.services import service
 from melodine.spotify import Album, Artist, Episode, Playlist, Show, Track
 
@@ -18,8 +18,8 @@ _TYPES = {
 _SEARCH_TYPES = {"artists", "albums", "tracks", "playlists", "shows", "episodes"}
 
 
-@dataclass(frozen=True)
-class SpotifySearchResults(SearchResults):
+@dataclass(repr=False, frozen=True)
+class SpotifySearchResults(SearchResultsBase):
     """A dataclass for Spotify Search Results
 
     Inherits from the base SearchResults class.

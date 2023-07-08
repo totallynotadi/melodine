@@ -9,7 +9,7 @@ from typing import Dict, List, Union
 
 from melodine.services import service
 from melodine import ytmusic
-from melodine.ytmusic.artist import Artist
+from melodine.ytmusic.artist import YTMusicArtist
 from melodine.ytmusic.track import Track
 from melodine.ytmusic.video import Video
 from melodine.utils import Image
@@ -101,7 +101,7 @@ class Playlist(URIBase):
         return self._tracks
 
     @property
-    def owner(self) -> Union["ytmusic.User", Artist]:
+    def owner(self) -> Union["ytmusic.User", YTMusicArtist]:
         from .user import User
 
         if isinstance(self._owner, str) or not self._owner:
@@ -109,7 +109,7 @@ class Playlist(URIBase):
                 self._get_data()
             self._owner = self._data["author"]
 
-        if not isinstance(self._owner, (Artist, User)):
+        if not isinstance(self._owner, (YTMusicArtist, User)):
             try:
                 user = service.ytmusic.get_user(
                     self._owner if isinstance(self._owner, str) else self._owner["id"]
@@ -121,9 +121,9 @@ class Playlist(URIBase):
                 )
             except (KeyError, ValueError, Exception):
                 self._owner = (
-                    Artist.from_id(self._owner)
+                    YTMusicArtist.from_id(self._owner)
                     if isinstance(self._owner, str)
-                    else Artist(self._owner)
+                    else YTMusicArtist(self._owner)
                 )
         return self._owner
 

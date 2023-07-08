@@ -29,7 +29,7 @@ class TopResultAlbum:
 @dataclass(repr=False, frozen=True)
 class SearchAlbum:
     category: Optional[str]
-    result_type: Optional[str]
+    result_type: Optional[str]  
     title: Optional[str]
     type: Optional[str]
     duration: Optional[str]

@@ -4,11 +4,11 @@ from dataclasses import dataclass, field
 from melodine.ytmusic import Video
 
 from melodine.services import service
-from melodine.utils import SearchResults
+from melodine.base.misc import SearchResultsBase
 
 
 @dataclass(frozen=True)
-class YoutubeSearchResults(SearchResults):
+class YoutubeSearchResults(SearchResultsBase):
     """A dataclass for Search Results
 
     Inherits from the base SearchResults class.

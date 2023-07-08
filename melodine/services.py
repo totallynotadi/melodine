@@ -167,7 +167,7 @@ class Services:
         self._base_js_url = self.ytmusic.get_basejs_url()
         return {
             "base_js_url": self._base_js_url,
-            "base_js_content": requests.get(self._base_js_url).text,
+            "base_js_content": requests.get(self._base_js_url, timeout=30).text,
         }
 
     @property

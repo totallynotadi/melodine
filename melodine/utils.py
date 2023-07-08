@@ -1,13 +1,6 @@
-from dataclasses import dataclass
 import functools
 from enum import Enum
-from typing import Dict, FrozenSet, List, Optional
-from melodine.base.misc import SearchResultsBase
-
-from melodine.base.track import TrackBase
-from melodine.base.artist import ArtistBase
-from melodine.base.album import AlbumBase
-from melodine.base.playlist import PlaylistBase
+from typing import Dict, FrozenSet
 
 
 class Image:
@@ -36,14 +29,6 @@ class Image:
 
     def __eq__(self, other):
         return type(self) is type(other) and self.url == other.url
-
-
-# @dataclass(frozen=True)
-# class SearchResults(SearchResultsBase):
-#     tracks: Optional[List[TrackBase]]
-#     artists: Optional[List[ArtistBase]]
-#     albums: Optional[List[AlbumBase]]
-#     playlists: Optional[List[PlaylistBase]]
 
 
 def singleton(cls):

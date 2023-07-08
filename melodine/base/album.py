@@ -20,42 +20,87 @@ class AlbumBase(metaclass=ABCMeta):
     #             subclass.get_recommendations)
     #     )
 
+    @classmethod
+    @abstractmethod
+    def from_id(cls, id: str):
+        ...
+
+    @classmethod
+    @abstractmethod
+    def from_url(cls, url: str):
+        ...
+
     @property
     @abstractmethod
     def id(self):
-        raise NotImplementedError
+        ...
 
     @property
     @abstractmethod
     def name(self):
-        raise NotImplementedError
+        ...
 
     @property
     @abstractmethod
     def href(self):
-        raise NotImplementedError
+        ...
 
     @property
     @abstractmethod
     def uri(self):
-        raise NotImplementedError
+        ...
 
     @property
     @abstractmethod
     def type(self):
-        raise NotImplementedError
+        ...
+
+    # @property
+    # @abstractmethod
+    # def year(self):
+    #     ...
+
+    # @property
+    # @abstractmethod
+    # def total_tracks(self):
+    #     ...
 
     @property
     @abstractmethod
-    def year(self):
-        raise NotImplementedError
-
-    @property
-    @abstractmethod
-    def total_tracks(self):
-        raise NotImplementedError
+    def artist(self):
+        ...
 
     @property
     @abstractmethod
     def tracks(self):
-        raise NotImplementedError
+        ...
+
+
+# class Test(AlbumBase):
+#     def __init__(self) -> None:
+#         super().__init__()
+#         pass
+
+#     def id(self):
+#         pass
+
+#     def artist(self):
+#         pass
+
+#     def href(self):
+#         pass
+
+#     def name(self):
+#         pass
+
+#     def tracks(self):
+#         pass
+
+#     def type(self):
+#         pass
+
+#     def uri(self):
+#         pass
+
+
+# test = Test()

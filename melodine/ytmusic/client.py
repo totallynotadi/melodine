@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     import ytmusicapi
 
 from melodine.services import service
-from melodine.ytmusic.not_search import search, YTMusicSearchResults
+from melodine.ytmusic.search import search, YTMusicSearchResults
 
 
 class YTMusic:

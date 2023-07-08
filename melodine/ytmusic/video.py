@@ -5,7 +5,7 @@ from melodine.base.misc import URIBase
 
 from melodine.services import service
 from melodine import ytmusic
-from melodine.ytmusic.artist import Artist
+from melodine.ytmusic.artist import YTMusicArtist
 from melodine.ytmusic.track import Track
 
 
@@ -75,7 +75,7 @@ class Video(URIBase):
         return self._name
 
     @property
-    def artists(self) -> Union[Artist, "ytmusic.User"]:
+    def artists(self) -> Union[YTMusicArtist, "ytmusic.User"]:
         from .user import User
 
         if len(self._artists) == 0:
@@ -88,7 +88,7 @@ class Video(URIBase):
             if not isinstance(
                 artist,
                 (
-                    Artist,
+                    YTMusicArtist,
                     User,
                 ),
             ):
@@ -98,12 +98,12 @@ class Video(URIBase):
                     user = service.ytmusic.get_user(artist["id"])
                     artist = User(user, id=artist["id"])
                 except (KeyError, ValueError):
-                    artist = Artist.partial(artist)
+                    artist = YTMusicArtist.partial(artist)
                 self._artists.insert(idx, artist)
                 del self._artists[idx + 1]
         return self._artists
 
-    @property
+    @property   
     def views(self) -> int:
         if self._views is None or not self._views.isdigit():
             if self._data is None:

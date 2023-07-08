@@ -6,7 +6,7 @@ from melodine.utils import Image
 from melodine.base.misc import URIBase
 
 
-class Artist(URIBase):
+class YTMusicArtist(URIBase):
     __slots__ = (
         "_data",
         "id",
@@ -58,11 +58,11 @@ class Artist(URIBase):
         self._data = service.ytmusic.get_artist(self.id)
 
     @classmethod
-    def from_id(cls, id: str) -> "Artist":
+    def from_id(cls, id: str) -> "YTMusicArtist":
         return cls(data={"channelId": id})
 
     @classmethod
-    def partial(cls, data: Dict) -> "Artist":
+    def partial(cls, data: Dict) -> "YTMusicArtist":
         """
         for artist data obtained from a track or an album.
             `{'name': '', 'id': ''}`
@@ -70,7 +70,7 @@ class Artist(URIBase):
         return cls(data={"name": data["name"], "channelId": data["id"]})
 
     @classmethod
-    def from_search(cls, data: Dict) -> "Artist":
+    def from_search(cls, data: Dict) -> "YTMusicArtist":
         """
         for artist data obtained from a search result
             `{'artist': '', 'browseId': '', 'shuffleId': '', 'radioId': ''}`
@@ -187,14 +187,14 @@ class Artist(URIBase):
         return self._images
 
     @property
-    def related_artists(self) -> List["ytmusic.Artist"]:
+    def related_artists(self) -> List["ytmusic.YTMusicArtist"]:
         if len(self._related_artists) == 0:
             if self._data is None:
                 self._get_data()
             self._related_artists = self._data["related"]["results"]
         for idx, artist in enumerate(self._related_artists.copy()):
-            if not isinstance(artist, Artist):
-                artist = Artist.from_search(artist)
+            if not isinstance(artist, YTMusicArtist):
+                artist = YTMusicArtist.from_search(artist)
                 self._related_artists.insert(idx, artist)
                 del self._related_artists[idx + 1]
         return self._related_artists

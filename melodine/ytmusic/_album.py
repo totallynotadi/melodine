@@ -4,8 +4,7 @@ from melodine.services import service
 from melodine import ytmusic
 from melodine.ytmusic.artist import Artist
 from melodine.ytmusic.track import Track
-from melodine.utils import Image
-from melodine.base.misc import URIBase
+from melodine.utils import Image, URIBase
 
 
 class Album(URIBase):
@@ -19,7 +18,7 @@ class Album(URIBase):
         "_type",
         "_description",
         "_year",
-        "_total_tracks",    
+        "_total_tracks",
         "_duration",
         "_images",
         "_artists",
