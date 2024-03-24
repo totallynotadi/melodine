@@ -1,22 +1,21 @@
-from dataclasses import dataclass, field
 import json
 import os
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, Optional
 from urllib.parse import parse_qs
+
 import requests
-
 import spotipy
-from ytmusicapi import YTMusic
 from innertube import InnerTube
+from ytmusicapi import YTMusic
 
-from melodine.utils import singleton
 from melodine import configs as CONFIG
 from melodine.cipher import Cipher
-
+from melodine.utils import singleton
 
 if TYPE_CHECKING:
-    from youtube_dl import YoutubeDL
     import pyyoutube
+    from youtube_dl import YoutubeDL
 
 
 SCOPES = """
@@ -142,7 +141,7 @@ class Services:
         return self.__ytmusic
 
     @property
-    def yt(self) -> "YoutubeDL":
+    def ytdl(self) -> "YoutubeDL":
         from youtube_dl import YoutubeDL
 
         if self.__ytdl is None:
@@ -150,7 +149,7 @@ class Services:
         return self.__ytdl
 
     @property
-    def ytdl(self) -> "pyyoutube.Api":
+    def yt(self) -> "pyyoutube.Api":
         import pyyoutube
 
         if self.__yt is None:
@@ -172,7 +171,7 @@ class Services:
 
     @property
     def basejs(self) -> str:
-        if os.path.exists(self._base_js_path):
+        if not os.path.exists(self._base_js_path):
             with open(self._base_js_path, "w", encoding="utf-8") as basejs:
                 json.dump(self._get_base_js(), basejs)
         with open(self._base_js_path, "r", encoding="utf") as basejs:

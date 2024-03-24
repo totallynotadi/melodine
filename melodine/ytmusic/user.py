@@ -133,7 +133,7 @@ class User(URIBase):
         Might take extremely long time based on the number of videos an artist has.
         (some channels end up having over 100 uploads)
 
-        Use :func:`get_videos` for paged results instead
+        Use :func:`get_videos()` for paged results instead
         """
         if len(self._videos) == self.total_uploads:
             return self.videos
