@@ -1,8 +1,6 @@
 from typing import Dict, Iterable, List, Literal, TYPE_CHECKING, Optional
 from melodine.utils import CacheStrategy
 
-from melodine.ytmusic.search import YTMusicSearch
-
 if TYPE_CHECKING:
     import requests
     import ytmusicapi
@@ -19,7 +17,6 @@ class YTMusic:
         session: Optional["requests.Session"] = None,
     ) -> None:
         self._ytmusic: "ytmusicapi.YTMusic" = service._ytmusic(cookie)
-        self._search: YTMusicSearch = YTMusicSearch()
 
     def home(self, limit=4):
         raise NotImplementedError()
@@ -27,13 +24,12 @@ class YTMusic:
     def search(
         self,
         query: str,
-        *,
         types: Iterable[
             Literal["tracks", "videos", "albums", "artists", "playlists"]
         ] = [],
         limit: int = 20,
     ) -> YTMusicSearchResults:
-        return self._search.search(query, types, limit)
+        return search(query, types, limit)
 
     def get_search_suggestions(self, query: str, *, detailed: bool = False):
         raise NotImplementedError()

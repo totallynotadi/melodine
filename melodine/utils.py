@@ -1,8 +1,17 @@
+from dataclasses import dataclass
 import functools
 from enum import Enum
-from typing import Dict, FrozenSet
+import re
+from typing import Dict, FrozenSet, Optional
 
 
+# weird workaround for using slots on dataclasses
+# see https://stackoverflow.com/a/63658478/15146028
+def slots(anotes: Dict[str, object]) -> FrozenSet[str]:
+    return frozenset(anotes.keys())
+
+
+@dataclass(repr=False)
 class Image:
     """
     An object representing a Spotify image resource.
@@ -17,18 +26,11 @@ class Image:
         The URL of the image.
     """
 
-    __slots__ = ("height", "width", "url")
+    url: Optional[str]
+    width: Optional[int]
+    height: Optional[int]
 
-    def __init__(self, *, height: str, width: str, url: str):
-        self.height = height
-        self.width = width
-        self.url = url
-
-    def __repr__(self):
-        return f"<melo.Image: {self.url!r} (width: {self.width!r}, height: {self.height!r})>"
-
-    def __eq__(self, other):
-        return type(self) is type(other) and self.url == other.url
+    __slots__ = slots(__annotations__)
 
 
 def singleton(cls):
@@ -52,7 +54,7 @@ class CacheStrategy(Enum):
     AGGRESSIVE: bool = True
 
 
-# weird workaround for using slots on dataclasses
-# see https://stackoverflow.com/a/63658478/15146028
-def slots(anotes: Dict[str, object]) -> FrozenSet[str]:
-    return frozenset(anotes.keys())
+to_snake_case = lambda x: "_".join(x.lower().split(" "))
+
+pattern = re.compile(r"(?<!^)(?=[A-Z])")
+camel_to_snake_case = lambda x: pattern.sub("_", x).lower()

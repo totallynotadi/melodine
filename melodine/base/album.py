@@ -22,7 +22,7 @@ class AlbumBase(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def from_id(cls, id: str):
+    def from_id(cls, resource_id: str):
         ...
 
     @classmethod
@@ -67,7 +67,7 @@ class AlbumBase(metaclass=ABCMeta):
 
     @property
     @abstractmethod
-    def artist(self):
+    def artists(self):
         ...
 
     @property

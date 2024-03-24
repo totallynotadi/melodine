@@ -159,7 +159,7 @@ class User(URIBase):
 
     @property
     def playlists(self) -> List["ytmusic.Playlist"]:
-        from .playlist import Playlist
+        from ._playlist import Playlist
 
         if len(self._playlists) == 0:
             if self._data is None:

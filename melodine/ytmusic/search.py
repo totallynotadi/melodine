@@ -1,16 +1,25 @@
 from itertools import groupby
-from typing import Any, Callable, Iterable, Literal, Dict, List
+from typing import Any, Dict, Iterable, List, Literal
 
-from dacite import from_dict
+import dacite
+from dacite import Config, from_dict
+
 from melodine.services import service
-from melodine.utils import singleton
+from melodine.utils import camel_to_snake_case, singleton, to_snake_case
 from melodine.ytmusic.models.search import YTMusicSearchResults
-from melodine.ytmusic.models.artist import SearchArtist, TopResultArtist
-from melodine.ytmusic.models.album import SearchAlbum, TopResultAlbum
-from melodine.ytmusic.models.track import SearchTrack, TopResultTrack
-from melodine.ytmusic.models.video import SearchVideo, TopResultVideo
-from melodine.ytmusic.models.playlist import SearchPlaylist
-
+from melodine.ytmusic.models.search_models import (
+    SearchAlbum,
+    SearchArtist,
+    SearchPlaylist,
+    SearchTrack,
+    SearchVideo,
+)
+from melodine.ytmusic.models.top_result_models import (
+    TopResultAlbum,
+    TopResultArtist,
+    TopResultTrack,
+    TopResultVideo,
+)
 
 _SEARCH_TYPES = {"artists", "albums", "tracks", "videos", "playlists"}
 
@@ -29,24 +38,50 @@ _TOP_RES_TYPES = {
     "playlist": SearchPlaylist,
 }
 
-
-to_snake_case = lambda x: "_".join(x.lower().split(" "))
-
 sub_res_types = lambda x: (
     "More from YouTube"
     if x is None
-    else "Playlists"
-    if x == "Community playlists"
-    else "Tracks"
-    if x == "Songs"
-    else x
+    else "Playlists" if x == "Community playlists" else "Tracks" if x == "Songs" else x
 )
 
 
-def group_models(search_json: List[Dict]) -> Dict[str, Any]:
+def transform_field_names(search_item: Dict[str, Any]):
+    for key in list(search_item.keys()).copy():
+        search_item[camel_to_snake_case(key)] = search_item.pop(key)
+    return search_item
+
+
+def model_callback(search_item: Dict[str, Any]) -> Any:
+    if (
+        search_item["category"] == "Profiles"
+        or search_item["category"] == "Episodes"
+        or search_item["category"] == "Podcasts"
+    ):
+        return
+
+    dataclass = (
+        _TOP_RES_TYPES[search_item["resultType"]]
+        if search_item["category"] == "Top result"
+        else _TYPES[search_item["resultType"]]
+    )
+
+    # [print(f"{key}: {val}") for key, val in transform_field_names(search_item).items()]
+    # print(dataclass, end="\n\n")
+    try:
+        return from_dict(
+            data_class=dataclass,
+            data=transform_field_names(search_item),
+            config=Config(strict=True, strict_unions_match=True),
+        )
+    except dacite.MissingValueError as e:
+        print("errored on search item:: ", search_item)
+        print(e)
+
+
+def group_models(model_items: List[Any]) -> Dict[str, Any]:
     grouped_results = {}
 
-    grouped_data = groupby(search_json, lambda x: x.category)  # type:ignore
+    grouped_data = groupby(model_items, lambda x: x.category)  # type:ignore
 
     for key, val in grouped_data:
         grouped_results[to_snake_case(sub_res_types(key))] = list(val)
@@ -54,61 +89,52 @@ def group_models(search_json: List[Dict]) -> Dict[str, Any]:
     return grouped_results
 
 
-@singleton
-class YTMusicSearch:
-    @staticmethod
-    def search(
-        q: str,
-        *,
-        types: Iterable[
-            Literal["tracks", "songs", "videos", "albums", "artists", "playlists"]
-        ] = [],
-        limit: int = 20,
-    ) -> YTMusicSearchResults:
-        search_json = []
-
-        if types:
-            if not hasattr(types, "__iter__"):
-                raise TypeError("types must be an iterable.")
-
-            types = set(types)
-
-            if not types.issubset(_SEARCH_TYPES):
-                raise ValueError(
-                    'Bad queary type! got "%s" expected one or more of: tracks, playlists, artists, albums, videos'
-                    % types.difference(_SEARCH_TYPES).pop()
-                )
-
-            if "tracks" in types:
-                types.remove("tracks")
-                types.add("songs")
-
-            for type in types:
-                results = service.ytmusic.search(q, filter=type, limit=limit)
-                search_json.extend(results)
-        else:
-            results = service.ytmusic.search(q, limit=limit)
-            search_json.extend(results)
-
-        model_callback: Callable[[Dict[str, Any]], Any] = lambda x: from_dict(
-            data_class=_TOP_RES_TYPES[x["resultType"]]
-            if x["category"] == "Top result"
-            else _TYPES[x["resultType"]],
-            data=x,
+def parse_results(search_results: List[Dict[str, Any]]):
+    modeled_search: List[Any] = list(
+        map(
+            model_callback,
+            search_results,
         )
+    )
+    modeled_search = [_ for _ in modeled_search if _ is not None]
 
-        modeled_srch: List[Any] = list(
-            map(
-                model_callback,
-                search_json,
+    return group_models(modeled_search)
+
+
+def search(
+    q: str,
+    types: Iterable[
+        Literal["tracks", "songs", "videos", "albums", "artists", "playlists"]
+    ] = [],
+    limit: int = 20,
+) -> YTMusicSearchResults:
+    search_results = []
+
+    if types:
+        if not hasattr(types, "__iter__"):
+            raise TypeError("types must be an iterable.")
+
+        types = set(types)
+
+        if not types.issubset(_SEARCH_TYPES):
+            raise ValueError(
+                'Bad queary type! got "%s" expected one or more of: tracks, playlists, artists, albums, videos'
+                % types.difference(_SEARCH_TYPES).pop()
             )
-        )
 
-        grouped_models = group_models(modeled_srch)
+        if "tracks" in types:
+            types.remove("tracks")
+            types.add("songs")
 
-        return from_dict(data_class=YTMusicSearchResults, data=grouped_models)  # type: ignore
+        for type in types:
+            results = service.ytmusic.search(q, filter=type, limit=limit)
+            search_results.extend(results)
+    else:
+        results = service.ytmusic.search(q, limit=limit)
+        search_results.extend(results)
 
+    # print(search_results)
 
-# using __func__ to bind the search attribute's underlying function to wherever it's being used.
-# https://stackoverflow.com/questions/41921255/staticmethod-object-is-not-callable
-search: YTMusicSearch.search = YTMusicSearch.search.__func__  # type: ignore
+    search_results = parse_results(search_results)
+
+    return from_dict(data_class=YTMusicSearchResults, data=search_results)  # type: ignore

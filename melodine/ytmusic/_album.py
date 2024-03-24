@@ -2,8 +2,8 @@ from typing import Dict, List
 
 from melodine.services import service
 from melodine import ytmusic
-from melodine.ytmusic.artist import Artist
-from melodine.ytmusic.track import Track
+from melodine.ytmusic._artist import Artist
+from melodine.ytmusic._track import Track
 from melodine.utils import Image, URIBase
 
 

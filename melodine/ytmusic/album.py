@@ -1,52 +1,59 @@
-from typing import List, Optional, Union
-from melodine.services import service
+from typing import Callable, List, Optional, Union
+
 from melodine.base.album import AlbumBase
 from melodine.base.misc import URIBase
-from melodine.utils import singleton
-from melodine.ytmusic.artist import YTMusicArtist
-from melodine.ytmusic.models.album import (
-    PartialAlbum,
-    TopResultAlbum,
-    SearchAlbum,
-    FullAlbum,
-)
-from melodine.ytmusic.models.artist import PartialArtist
-from melodine.ytmusic.models.misc import Image
+from melodine.services import service
+from melodine.utils import Image
+from melodine.ytmusic._artist import YTMusicArtist
+from melodine.ytmusic.models.full_models import FullAlbum
+from melodine.ytmusic.models.partial_models import PartialAlbum, PartialArtist
+from melodine.ytmusic.models.search_models import SearchAlbum
+from melodine.ytmusic.models.top_result_models import TopResultAlbum
+from melodine.ytmusic.track import YTMusicTrack
 
 
-@singleton
 class YTMusicAlbum(AlbumBase, URIBase):
     def __init__(
         self, data: Union[PartialAlbum, TopResultAlbum, SearchAlbum, FullAlbum]
     ) -> None:
-        self.__data: Optional[FullAlbum] = None
+        self.__data: Optional[FullAlbum] = {}
         self.__base_data = data
 
         self.__id: Optional[str] = None
-        self.__year: Optional[str] = self.__base_data.year
 
     @classmethod
-    def from_id(cls, id: str) -> "YTMusicAlbum":
-        ...
+    def from_id(cls, resource_id: str) -> "YTMusicAlbum":
+        pass
 
     @classmethod
     def from_url(cls, url: str) -> "YTMusicAlbum":
-        ...
+        pass
 
-    def __find_album(
-        artist: PartialArtist, title: str, thumbnails: Optional[List[Image]] = None
-    ) -> SearchAlbum:
-        ...
+    # def __find_album(
+    #     self,
+    #     artist: PartialArtist,
+    #     title: str,
+    #     thumbnails: Optional[List[Image]] = None,
+    # ) -> SearchAlbum:
+    #     """
+    #     for cases when an album's `browseId` is not available.
+
+    #     use the present artists's `browseId` to fetch it's data \
+    #     and find this given albums among the artist's albums.
+    #     """
+    #     ...
 
     def __get_data(self):
         if self.__data is None:
             self.__data = service.ytmusic.get_album(self.id)
         return self.__data
 
-    def __ensure_data(func):
+    def __ensure_data(func: Callable):
+        print("lmao")
 
         def inner(self):
             try:
+                print(f"passed function inside try: {func} {self}")
                 func_return = func(self)
                 if func_return is None:
                     self.__get_data()
@@ -54,6 +61,7 @@ class YTMusicAlbum(AlbumBase, URIBase):
                     return func_return
                 return func_return
             except AttributeError:
+                print("inside except")
                 self.__get_data()
                 func_return = func()
                 return func_return
@@ -68,9 +76,14 @@ class YTMusicAlbum(AlbumBase, URIBase):
                 self.__id = service.ytmusic.get_album_browse_id(
                     self.__data.audio_playlist_id
                 )
-            else:
-                self.__base_data = self.__find_album(self.__base_data.artists[0])
-                self.__id = self.__base_data.id or self.__base_data.browse_id
+            # uncomment this later when __find_album is implemented
+            # else:
+            #     self.__base_data = self.__find_album(
+            #         self.__base_data.artists[0],
+            #         self.__base_data.title,
+            #         self.__base_data.thumbnails,
+            #     )
+            #     self.__id = self.__base_data.id or self.__base_data.browse_id
         return self.__id
 
     @property
@@ -88,7 +101,8 @@ class YTMusicAlbum(AlbumBase, URIBase):
     @property
     @__ensure_data
     def audio_playlist_id(self) -> str:
-        return self.__base_data.audio_playlist_id or self.__base_data.audio_playlist_id
+        return self.__base_data.audio_playlist_id or self.__data.audio_playlist_id
+        # return self.__base_data.audio_playlist_id
 
     @property
     @__ensure_data
@@ -108,11 +122,8 @@ class YTMusicAlbum(AlbumBase, URIBase):
     @property
     @__ensure_data
     def duration(self) -> Union[int, str]:
-        return (
-            self.__base_data.duration_seconds
-            or self.__data.duration_seconds
-            or self.__base_data.duration
-        )
+        # or self.__base_data.duration
+        return self.__base_data.duration_seconds or self.__data.duration_seconds
 
     @property
     @__ensure_data
@@ -123,3 +134,17 @@ class YTMusicAlbum(AlbumBase, URIBase):
     @__ensure_data
     def artists(self) -> List[YTMusicArtist]:
         return
+
+    @property
+    @__ensure_data
+    def tracks(self) -> List[YTMusicTrack]:
+        return
+
+
+if __name__ == "__maim__":
+    from melodine.ytmusic.search import search
+
+    album = search("sewerslvt", types=["albums"]).albums[0]
+    ytmalbum = YTMusicAlbum(data=album)
+    print(ytmalbum.audio_playlist_id)
+    # dir(ytmalbum)

@@ -75,6 +75,17 @@ typing-inspect = ">=0.4.0"
 dev = ["flake8", "hypothesis", "ipython", "mypy (>=0.710)", "portray", "pytest (>=7.2.0)", "simplejson", "types-dataclasses"]
 
 [[package]]
+name = "fastclasses-json"
+version = "0.6.1"
+description = "Quickly serialize dataclasses to and from JSON"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+
+[package.extras]
+dev = ["flake8", "mypy", "pytest"]
+
+[[package]]
 name = "h11"
 version = "0.14.0"
 description = "A pure-Python, bring-your-own-I/O implementation of HTTP/1.1"
@@ -396,7 +407,7 @@ dev = ["coverage", "flake8", "pre-commit", "sphinx", "sphinx-rtd-theme", "yapf"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "b368a5fc068939e40449b7bcbda66adec9fa3995b1cd936c687671bf83175393"
+content-hash = "22fd2a88cdfc997a872d316e606cd5a36f20a9e17f03d500162b0fdba38d4320"
 
 [metadata.files]
 anyio = [
@@ -498,6 +509,10 @@ dacite = [
 dataclasses-json = [
     {file = "dataclasses-json-0.5.8.tar.gz", hash = "sha256:6572ac08ad9340abcb74fd8c4c8e9752db2a182a402c8e871d0a8aa119e3804e"},
     {file = "dataclasses_json-0.5.8-py3-none-any.whl", hash = "sha256:65b167c15fdf9bde27569c09ac18dd39bf1cc5b7998525024cb4678d2653946c"},
+]
+fastclasses-json = [
+    {file = "fastclasses-json-0.6.1.tar.gz", hash = "sha256:f3565e68d7e37e7c6923628af76ebaa7b5bc01f8b0e54ad501f5749550067f2a"},
+    {file = "fastclasses_json-0.6.1-py3-none-any.whl", hash = "sha256:084947e93eb4b48b32a00a6cfe76fa915d1056e86a5ada1c06c993959f3d8012"},
 ]
 h11 = [
     {file = "h11-0.14.0-py3-none-any.whl", hash = "sha256:e3fe4ac4b851c468cc8363d500db52c2ead036020723024a109d37346efaa761"},
