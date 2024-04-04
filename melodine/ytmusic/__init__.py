@@ -1,17 +1,17 @@
-from melodine.ytmusic._track import Track
-from melodine.ytmusic._artist import YTMusicArtist
-from melodine.ytmusic.album import YTMusicAlbum
-from melodine.ytmusic._video import Video
-from melodine.ytmusic._playlist import Playlist
-from melodine.ytmusic.search import search
-from melodine.ytmusic.user import User
 from melodine.ytmusic.client import YTMusic
+from melodine.ytmusic.views._artist import YTMusicArtist
+from melodine.ytmusic.views._playlist import Playlist
+from melodine.ytmusic.views._track import Track
+from melodine.ytmusic.views._video import Video
+from melodine.ytmusic.views.album import YTMusicAlbum
+from melodine.ytmusic.views.search import search
+from melodine.ytmusic.views.user import User
 
 __all__ = [
     "YTMusic",
     "Track",
-    "Artist",
-    "Album",
+    "YTMusicArtist",
+    "YTMusicAlbum",
     "Video",
     "User",
     "Playlist",

@@ -1,4 +1,5 @@
-from melodine import base, spotify, ytmusic, youtube
+from melodine import base, spotify, youtube
+from melodine import ytmusic
 
 __all__ = (
     "base",

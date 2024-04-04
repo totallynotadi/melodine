@@ -19,6 +19,7 @@ class TopResultAlbum:
     result_type: Optional[str]
     title: str
     artists: List[PartialArtist]
+    browse_id: str
     thumbnails: List[Image]
     __slots__ = slots(__annotations__)
 

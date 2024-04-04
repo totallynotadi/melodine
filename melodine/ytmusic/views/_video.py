@@ -1,12 +1,12 @@
 from typing import Dict, List, Union
 
-from melodine.utils import Image
-from melodine.base.misc import URIBase
-
-from melodine.services import service
 from melodine import ytmusic
-from melodine.ytmusic._artist import YTMusicArtist
-from melodine.ytmusic._track import Track
+from melodine.base.misc import URIBase
+from melodine.services import service
+from melodine.utils import Image
+from melodine.ytmusic.views._track import Track
+
+from ._artist import YTMusicArtist
 
 
 class Video(URIBase):
@@ -103,7 +103,7 @@ class Video(URIBase):
                 del self._artists[idx + 1]
         return self._artists
 
-    @property   
+    @property
     def views(self) -> int:
         if self._views is None or not self._views.isdigit():
             if self._data is None:

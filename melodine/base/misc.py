@@ -30,9 +30,6 @@ class URIBase:
     All melodine.must inherit from `URIBase`
     """
 
-    uri = repr(None)
-    id = repr(None)
-
     def __hash__(self):
         return hash(self.uri)
 

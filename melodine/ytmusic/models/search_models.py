@@ -15,12 +15,12 @@ __all__ = [
 
 @dataclass(repr=False)
 class SearchAlbum:
-    category: Optional[str]
-    result_type: Optional[str]
+    category: str
+    result_type: str
     title: str
     type: str
     duration: Optional[str]
-    year: Optional[str]
+    year: str
     artists: List[PartialArtist]
     browse_id: str
     is_explicit: bool
@@ -30,8 +30,8 @@ class SearchAlbum:
 
 @dataclass(repr=False)
 class SearchArtist:
-    category: Optional[str]
-    result_type: Optional[str]
+    category: str
+    result_type: str
     artist: str
     shuffle_id: str
     radio_id: str
@@ -42,8 +42,8 @@ class SearchArtist:
 
 @dataclass(repr=False)
 class SearchPlaylist:
-    category: Optional[str]
-    result_type: Optional[str]
+    category: str
+    result_type: str
     title: str
     item_count: str
     author: str
@@ -54,8 +54,8 @@ class SearchPlaylist:
 
 @dataclass(repr=False)
 class SearchTrack:
-    category: Optional[str]
-    result_type: Optional[str]
+    category: str
+    result_type: str
     title: str
     album: PartialAlbum
     feedback_tokens: dict
@@ -73,15 +73,15 @@ class SearchTrack:
 
 @dataclass(repr=False)
 class SearchVideo:
-    category: Optional[str]
-    result_type: Optional[str]
+    category: str
+    result_type: str
     title: str
     video_id: str
     video_type: str
     duration: Optional[str]
     year: Optional[int]
     artists: List[PartialArtist]
-    views: Optional[str]
-    duration_seconds: Optional[int]
+    views: str
+    duration_seconds: int
     thumbnails: List[Image]
     __slots__ = slots(__annotations__)

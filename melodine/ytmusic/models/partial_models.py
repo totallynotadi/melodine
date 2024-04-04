@@ -14,15 +14,15 @@ __all__ = [
 
 @dataclass(repr=False)
 class PartialAlbum:
-    name: Optional[str]
-    id: Optional[str]
+    name: str
+    id: str
     __slots__ = slots(__annotations__)
 
 
 @dataclass(repr=False)
 class PartialArtist:
-    name: Optional[str]
-    id: Optional[str]
+    name: str
+    id: str
     __slots__ = slots(__annotations__)
 
 

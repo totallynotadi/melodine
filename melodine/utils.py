@@ -1,8 +1,8 @@
-from dataclasses import dataclass
 import functools
-from enum import Enum
 import re
-from typing import Dict, FrozenSet, Optional
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, FrozenSet, List, Optional, Union
 
 
 # weird workaround for using slots on dataclasses
@@ -54,7 +54,31 @@ class CacheStrategy(Enum):
     AGGRESSIVE: bool = True
 
 
-to_snake_case = lambda x: "_".join(x.lower().split(" "))
+def to_snake_case(x):
+    return "_".join(x.lower().split(" "))
+
 
 pattern = re.compile(r"(?<!^)(?=[A-Z])")
-camel_to_snake_case = lambda x: pattern.sub("_", x).lower()
+
+
+def camel_to_snake_case(x):
+    return pattern.sub("_", x).lower()
+
+
+def transform_field_names(search_item: Union[Dict[str, Any], List[Dict[str, Any]]]):
+    """
+    convert a dictionary's key names from camelCase to snake_case recursively   
+    """
+    if isinstance(search_item, list):
+        transformed_sub_list = [transform_field_names(item) for item in search_item]
+        return transformed_sub_list
+    elif isinstance(search_item, dict):
+        transformed_sub_item = {
+            camel_to_snake_case(key): (
+                transform_field_names(item) if isinstance(item, (dict, list)) else item
+            )
+            for (key, item) in search_item.items()
+        }
+        return transformed_sub_item
+    else:
+        return camel_to_snake_case(search_item)

@@ -1,0 +1,2 @@
+class YTMusicTrack:
+    pass

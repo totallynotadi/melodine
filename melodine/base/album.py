@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 
 class AlbumBase(metaclass=ABCMeta):
@@ -22,85 +22,95 @@ class AlbumBase(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def from_id(cls, resource_id: str):
-        ...
+    def from_id(cls, resource_id: str): ...
 
     @classmethod
     @abstractmethod
-    def from_url(cls, url: str):
-        ...
+    def from_url(cls, url: str): ...
 
     @property
-    @abstractmethod
-    def id(self):
-        ...
+    @abstractproperty
+    def id(self) -> str: ...
 
     @property
-    @abstractmethod
-    def name(self):
-        ...
+    @abstractproperty
+    def name(self): ...
 
     @property
-    @abstractmethod
-    def href(self):
-        ...
+    @abstractproperty
+    def href(self): ...
 
     @property
-    @abstractmethod
-    def uri(self):
-        ...
+    @abstractproperty
+    def uri(self): ...
 
     @property
-    @abstractmethod
-    def type(self):
-        ...
+    @abstractproperty
+    def type(self): ...
 
     # @property
-    # @abstractmethod
+    # @abstractproperty
     # def year(self):
     #     ...
 
     # @property
-    # @abstractmethod
+    # @abstractproperty
     # def total_tracks(self):
     #     ...
 
     @property
-    @abstractmethod
-    def artists(self):
-        ...
+    @abstractproperty
+    def artists(self): ...
 
     @property
-    @abstractmethod
+    @abstractproperty
+    def tracks(self): ...
+
+
+class Test(AlbumBase):
+    def __init__(self) -> None:
+        super().__init__()
+        pass
+
+    @property
+    def id(self):
+        pass
+
+    @property
+    def artist(self):
+        pass
+
+    @property
+    def href(self):
+        pass
+
+    @property
+    def name(self):
+        pass
+
+    @property
     def tracks(self):
-        ...
+        pass
+
+    @property
+    def type(self):
+        pass
+
+    @property
+    def uri(self):
+        pass
+
+    @property
+    def artists(self):
+        pass
+
+    @classmethod
+    def from_id(self):
+        pass
+
+    @classmethod
+    def from_url(self):
+        pass
 
 
-# class Test(AlbumBase):
-#     def __init__(self) -> None:
-#         super().__init__()
-#         pass
-
-#     def id(self):
-#         pass
-
-#     def artist(self):
-#         pass
-
-#     def href(self):
-#         pass
-
-#     def name(self):
-#         pass
-
-#     def tracks(self):
-#         pass
-
-#     def type(self):
-#         pass
-
-#     def uri(self):
-#         pass
-
-
-# test = Test()
+test = Test()

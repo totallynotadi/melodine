@@ -1,4 +1,5 @@
-from typing import Dict, Iterable, List, Literal, TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, Iterable, List, Literal, Optional
+
 from melodine.utils import CacheStrategy
 
 if TYPE_CHECKING:
@@ -6,7 +7,7 @@ if TYPE_CHECKING:
     import ytmusicapi
 
 from melodine.services import service
-from melodine.ytmusic.search import search, YTMusicSearchResults
+from melodine.ytmusic.views.search import YTMusicSearchResults, search
 
 
 class YTMusic:
@@ -36,15 +37,15 @@ class YTMusic:
 
     def library_albums(
         self,
-        limit: int = 25,
-        order: Literal["a_to_z", "z_to_a", "recently_added"] = None,
+        limit: Optional[int] = 25,
+        order: Optional[Literal["a_to_z", "z_to_a", "recently_added"]] = None,
     ):
         raise NotImplementedError()
 
     def library_artists(
         self,
-        limit: int = 25,
-        order: Literal["a_to_z", "z_to_a", "recently_added"] = None,
+        limit: Optional[int] = 25,
+        order: Optional[Literal["a_to_z", "z_to_a", "recently_added"]] = None,
     ):
         raise NotImplementedError()
 
@@ -56,18 +57,20 @@ class YTMusic:
 
     def library_songs(
         self,
-        limit: int = 25,
-        order: Literal["a_to_z", "z_to_a", "recently_added"] = None,
+        limit: Optional[int] = 25,
+        order: Optional[Literal["a_to_z", "z_to_a", "recently_added"]] = None,
     ):
         raise NotImplementedError()
 
-    def liked_songs(limit: int = 100):
+    def liked_songs(self, limit: Optional[int] = 100):
         raise NotImplementedError()
 
     def get_tasteprofile(self):
         raise NotImplementedError()
 
-    def set_tasteprofile(self, artists: List[str], taste_profile: Dict = None):
+    def set_tasteprofile(
+        self, artists: Optional[List[str]], taste_profile: Optional[Dict] = None
+    ):
         raise NotImplementedError()
 
     def get_categories(self):

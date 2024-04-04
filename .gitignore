@@ -130,4 +130,4 @@ dmypy.json
 ytmusic_test.py
 spotify_test.py
 notes.md
-tests/*
+tests

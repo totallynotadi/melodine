@@ -87,7 +87,7 @@ class Services:
     def __init__(self, config_params: ConfigParams = ConfigParams()):
         self.config = config_params
 
-        self._spotify: Optional[spotipy.Spotify] = None
+        self.__spotify: Optional[spotipy.Spotify] = None
         self.__ytmusic: Optional[YTMusic] = None
         self.__yt: Optional[pyyoutube.Api] = None
         self.__ytdl: Optional[YoutubeDL] = None
@@ -101,9 +101,9 @@ class Services:
 
     @property
     def spotify(self) -> "spotipy.Spotify":
-        if self._spotify is None:
+        if self.__spotify is None:
             if os.path.exists(self.config.spotify_creds.app_path):
-                self._spotify = spotipy.Spotify(
+                self.__spotify = spotipy.Spotify(
                     auth_manager=spotipy.SpotifyOAuth(
                         scope=self.config.spotify_creds.scopes,
                         client_id=self.config.spotify_creds.client_id,
@@ -117,13 +117,13 @@ class Services:
                     )
                 )
             else:
-                self._spotify = spotipy.Spotify(
+                self.__spotify = spotipy.Spotify(
                     auth_manager=spotipy.SpotifyClientCredentials(
                         client_id=self.config.spotify_creds.client_id,
                         client_secret=self.config.spotify_creds.client_secret,
                     )
                 )
-        return self._spotify
+        return self.__spotify
 
     def _ytmusic(self, cookie: Optional[str] = None) -> YTMusic:
         """exists only to get a YTM object explicitly from the cookie given as the param"""
@@ -194,14 +194,12 @@ class Services:
         signed_url = parsed_query["url"][0] + "&sig=" + signature + "&ratebypass=yes"
         return signed_url
 
+    # TODO: spotify and ytmusci oauth implementations
     def spotify_auth(self, client_id, client_secret):
         return
 
-    def ytmusic_oauth(self):
+    def ytmusic_auth(self):
         return
 
 
 service = Services()
-
-if os.path.exists(CONFIG.TEMPFILES_DIR):
-    os.rmdir(CONFIG.TEMPFILES_DIR)

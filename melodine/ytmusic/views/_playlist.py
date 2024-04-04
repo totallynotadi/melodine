@@ -7,13 +7,13 @@ so a simple try catch for when a artist owns a playlist should suffice.
 
 from typing import Dict, List, Union
 
-from melodine.services import service
 from melodine import ytmusic
-from melodine.ytmusic._artist import YTMusicArtist
-from melodine.ytmusic._track import Track
-from melodine.ytmusic._video import Video
-from melodine.utils import Image
 from melodine.base.misc import URIBase
+from melodine.services import service
+from melodine.utils import Image
+from melodine.ytmusic.views._artist import YTMusicArtist
+from melodine.ytmusic.views._track import Track
+from melodine.ytmusic.views._video import Video
 
 
 class Playlist(URIBase):
@@ -36,15 +36,13 @@ class Playlist(URIBase):
         """
         TODO: implement playlist video suggestions and related playlist fetching from the `get_playlist` function parameters
 
-        Returns:
+        Parameters:
             data: the raw JSON data obtained from ytmusicapi for a particular playlist
         """
 
         self._data = None
 
-        self.id: str = data.get(
-            "id", data.get("playlistId", data.get("browseId"))
-        )  # pylint: disable=invalid-name
+        self.id: str = data.get("id", data.get("playlistId", data.get("browseId")))  # pylint: disable=invalid-name
         if self.id.startswith("VL"):
             self.id = self.id[2:]
         self._name: str = data.get("title", None)

@@ -21,12 +21,13 @@ class FullAlbum:
     type: str
     thumbnails: List[Image]
     artists: List[PartialArtist]
-    year: Optional[str]
+    year: str
     track_count: int
-    duration: Optional[str]
+    duration: str
     audio_playlist_id: str
     tracks: List[AlbumTrack]
-    duration_seconds: Optional[str]
+    duration_seconds: int
+    is_explicit: bool
     __slots__ = slots(__annotations__)
 
 

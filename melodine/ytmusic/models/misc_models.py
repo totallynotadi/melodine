@@ -35,11 +35,14 @@ class AlbumTrack:
     title: str
     artists: List[PartialArtist]
     album: str
-    like_status: LikeStatus
+    like_status: str
     thumbnails: Optional[List[Image]]
     is_available: bool
     is_explicit: bool
     video_type: str
+    in_library: Optional[bool]
+    views: str
+    track_number: int
     duration: str
     duration_seconds: int
     __slots__ = slots(__annotations__)
