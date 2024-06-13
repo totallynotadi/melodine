@@ -127,6 +127,7 @@ venv.bak/
 dmypy.json
 
 # custom
+ensure_wrapper.py
 ytmusic_test.py
 spotify_test.py
 notes.md
