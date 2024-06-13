@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from melodine.utils import Image, slots
 from melodine.ytmusic.models.partial_models import PartialArtist
@@ -11,7 +11,7 @@ __all__ = [
     "AlbumTrack",
     "ArtistAlbum",
     "ArtistVideo",
-    "ArtistRelatedArtists",
+    "ArtistRelatedArtist",
 ]
 
 
@@ -22,7 +22,6 @@ class FeedbackTokens:
     __slots__ = slots(__annotations__)
 
 
-@dataclass(repr=False)
 class LikeStatus(Enum):
     LIKE: bool = True
     INDIFFERENT: None = None
@@ -35,12 +34,12 @@ class AlbumTrack:
     title: str
     artists: List[PartialArtist]
     album: str
-    like_status: str
+    like_status: Literal["LIKE", "INDIFFERENT", "DISLIKE"]
+    in_library: Optional[bool]
     thumbnails: Optional[List[Image]]
     is_available: bool
     is_explicit: bool
     video_type: str
-    in_library: Optional[bool]
     views: str
     track_number: int
     duration: str
@@ -51,10 +50,24 @@ class AlbumTrack:
 @dataclass(repr=False)
 class ArtistAlbum:
     title: str
+    type: Optional[Literal["Album", "EP"]]
     year: Optional[str]
+    artists: Optional[List[PartialArtist]]
     browse_id: str
+    audio_playlist_id: Optional[str]
     thumbnails: List[Image]
     is_explicit: Optional[bool]
+    __slots__ = slots(__annotations__)
+
+
+@dataclass(repr=False)
+class ArtistSingle:
+    title: str
+    browse_id: str
+    audio_playlist_id: Optional[str]
+    thumbnails: List[Image]
+    is_explicit: Optional[bool]
+    __slots__ = slots(__annotations__)
 
 
 @dataclass(repr=False)
@@ -65,11 +78,13 @@ class ArtistVideo:
     playlist_id: str
     thumbnails: List[Image]
     views: str
+    __slots__ = slots(__annotations__)
 
 
 @dataclass(repr=False)
-class ArtistRelatedArtists:
+class ArtistRelatedArtist:
     title: str
     browse_id: str
     subscribers: str
     thumbnails: List[Image]
+    __slots__ = slots(__annotations__)

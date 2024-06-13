@@ -1,14 +1,14 @@
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import List, Literal, Optional
 
 from melodine.utils import Image, slots
 from melodine.ytmusic.models.misc_models import (
     AlbumTrack,
     ArtistAlbum,
-    ArtistRelatedArtists,
+    ArtistRelatedArtist,
+    ArtistSingle,
     ArtistVideo,
     FeedbackTokens,
-    LikeStatus,
 )
 from melodine.ytmusic.models.partial_models import PartialAlbum, PartialArtist
 
@@ -23,9 +23,9 @@ class FullAlbum:
     artists: List[PartialArtist]
     year: str
     track_count: int
-    duration: str
     audio_playlist_id: str
     tracks: List[AlbumTrack]
+    duration: str
     duration_seconds: int
     is_explicit: bool
     __slots__ = slots(__annotations__)
@@ -37,20 +37,22 @@ class FullTrack:
     title: str
     artists: List[PartialArtist]
     album: PartialAlbum
-    like_status: LikeStatus
+    like_status: Literal["LIKE", "INDIFFERENT", "DISLIKE"]
     thumbnails: List[Image]
+    in_library: Optional[bool]
     is_available: bool
     is_explicit: bool
     video_type: str
-    duration: Optional[str]
-    duration_seconds: Optional[int]
-    feedback_tokens: FeedbackTokens
+    views: str
+    # duration: Optional[str]
+    # duration_seconds: Optional[int]
+    # feedback_tokens: FeedbackTokens
     __slots__ = slots(__annotations__)
 
 
 @dataclass(repr=False)
 class ArtistTracks:
-    browse_id: str
+    browse_id: Optional[str]
     results: List[FullTrack]
     params: Optional[str]
     __slots__ = slots(__annotations__)
@@ -58,23 +60,23 @@ class ArtistTracks:
 
 @dataclass(repr=False)
 class ArtistAlbums:
-    browse_id: str
+    browse_id: Optional[str]
     results: List[ArtistAlbum]
     params: Optional[str]
     __slots__ = slots(__annotations__)
 
 
 @dataclass(repr=False)
-class ArtistSingles:
-    browse_id: str
-    results: List[ArtistAlbum]
+class ArtistSignles:
+    browse_id: Optional[str]
+    results: List[ArtistSingle]
     params: Optional[str]
     __slots__ = slots(__annotations__)
 
 
 @dataclass(repr=False)
 class ArtistVideos:
-    browse_id: str
+    browse_id: Optional[str]
     results: List[ArtistVideo]
     params: Optional[str]
     __slots__ = slots(__annotations__)
@@ -82,8 +84,8 @@ class ArtistVideos:
 
 @dataclass(repr=False)
 class ArtistRelated:
-    browse_id: str
-    results: List[ArtistRelatedArtists]
+    browse_id: Optional[str]
+    results: List[ArtistRelatedArtist]
     params: Optional[str]
     __slots__ = slots(__annotations__)
 
@@ -94,14 +96,14 @@ class FullArtist:
     views: str
     name: str
     channel_id: str
-    shuffle_id: str
-    radio_id: str
+    shuffle_id: Optional[str]
+    radio_id: Optional[str]
     subscribers: str
     subscribed: bool
     thumbnails: List[Image]
-    songs: ArtistTracks
+    tracks: ArtistTracks
     albums: ArtistAlbums
-    singles: ArtistSingles
+    singles: ArtistAlbums
     videos: ArtistVideos
     related: ArtistRelated
     __slots__ = slots(__annotations__)

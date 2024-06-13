@@ -5,7 +5,6 @@ from enum import Enum
 from typing import Any, Dict, FrozenSet, List, Optional, Union
 
 
-# weird workaround for using slots on dataclasses
 # see https://stackoverflow.com/a/63658478/15146028
 def slots(anotes: Dict[str, object]) -> FrozenSet[str]:
     return frozenset(anotes.keys())
@@ -36,7 +35,8 @@ class Image:
 def singleton(cls):
     """class definitions marked singleton remember created instances and return that one same instance each time its object is instantialted.
 
-    i.e. only one instance of an object can exist at any given time."""
+    i.e. only one instance of an object can exist at any given time.
+    """
 
     @functools.wraps(cls)
     def wrapper_singleton(*args, **kwargs):
@@ -65,16 +65,30 @@ def camel_to_snake_case(x):
     return pattern.sub("_", x).lower()
 
 
+def sub_res_types(res_type: str) -> str:
+    return (
+        "More from YouTube"
+        if res_type is None
+        else (
+            "Playlists"
+            if res_type.lower() == "community playlists"
+            else "Tracks"
+            if res_type.lower() == "songs"
+            else res_type
+        )
+    )
+
+
 def transform_field_names(search_item: Union[Dict[str, Any], List[Dict[str, Any]]]):
     """
-    convert a dictionary's key names from camelCase to snake_case recursively   
+    convert a dictionary's key names from camelCase to snake_case recursively
     """
     if isinstance(search_item, list):
         transformed_sub_list = [transform_field_names(item) for item in search_item]
         return transformed_sub_list
     elif isinstance(search_item, dict):
         transformed_sub_item = {
-            camel_to_snake_case(key): (
+            camel_to_snake_case(sub_res_types(key)): (
                 transform_field_names(item) if isinstance(item, (dict, list)) else item
             )
             for (key, item) in search_item.items()

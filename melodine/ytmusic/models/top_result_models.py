@@ -15,8 +15,8 @@ __all__ = [
 
 @dataclass(repr=False)
 class TopResultAlbum:
-    category: Optional[str]
-    result_type: Optional[str]
+    category: str
+    result_type: str
     title: str
     artists: List[PartialArtist]
     browse_id: str
@@ -26,8 +26,8 @@ class TopResultAlbum:
 
 @dataclass(repr=False)
 class TopResultArtist:
-    category: Optional[str]
-    result_type: Optional[str]
+    category: str
+    result_type: str
     subscribers: str
     artists: List[PartialArtist]
     thumbnails: List[Image]
@@ -40,8 +40,8 @@ class TopResultPlaylist: ...
 
 @dataclass(repr=False)
 class TopResultTrack:
-    category: Optional[str]
-    result_type: Optional[str]
+    category: str
+    result_type: str
     video_id: str
     video_type: str
     title: str
@@ -56,7 +56,7 @@ class TopResultTrack:
 @dataclass(repr=False)
 class TopResultVideo:
     category: str
-    result_type: Optional[str]
+    result_type: str
     video_id: str
     video_type: str
     title: str

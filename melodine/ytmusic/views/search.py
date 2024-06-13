@@ -41,6 +41,21 @@ def search(
         results = service.ytmusic.search(q, limit=limit)
         search_results.extend(results)
 
+    ## TODO: we're not supporting Podcasts and User Profiles on YTMusic yet.
+    search_results = list(
+        filter(
+            lambda x: x["category"] not in ["Profiles", "Episodes", "Podcasts"],
+            search_results,
+        )
+    )
+    for result in search_results:
+        if "resultType" in result:
+            # hacky fix
+            if result["resultType"] == "album":
+                result["artists"] = list(
+                    filter(lambda x: x["id"] is not None, result.pop("artists"))
+                )
+
     # print(search_results)
 
     modeled_search_results = model_search_results(search_results)

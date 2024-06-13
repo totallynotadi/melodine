@@ -196,10 +196,10 @@ class Services:
 
     # TODO: spotify and ytmusci oauth implementations
     def spotify_auth(self, client_id, client_secret):
-        return
+        raise NotImplementedError()
 
     def ytmusic_auth(self):
-        return
+        raise NotImplementedError()
 
 
 service = Services()

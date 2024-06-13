@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 
-@dataclass(repr=False)
+@dataclass(repr=False, frozen=True)
 class SearchAlbum:
     category: str
     result_type: str
@@ -33,8 +33,8 @@ class SearchArtist:
     category: str
     result_type: str
     artist: str
-    shuffle_id: str
-    radio_id: str
+    shuffle_id: Optional[str]
+    radio_id: Optional[str]
     browse_id: str
     thumbnails: List[Image]
     __slots__ = slots(__annotations__)
