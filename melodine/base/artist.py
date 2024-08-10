@@ -1,64 +1,49 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 
 class ArtistBase(metaclass=ABCMeta):
     @classmethod
-    def __subclasshook__(cls, subclass):
-        return (
-            hasattr(subclass, 'id') and
-            hasattr(subclass, 'name') and
-            hasattr(subclass, 'href') and
-            hasattr(subclass, 'uri') and
-            hasattr(subclass, 'images') and
+    @abstractmethod
+    def from_id(cls, resource_id: str): ...
 
-            hasattr(subclass, 'album') and
-            hasattr(subclass, 'url') and
+    @classmethod
+    @abstractmethod
+    def from_url(cls, url: str): ...
 
-            hasattr(subclass, 'related_artists') and callable(
-                subclass.related_artists)
-        )
+    @property
+    @abstractmethod
+    def id(self): ...
 
+    @property
+    @abstractmethod
+    def name(self): ...
+
+    @property
+    @abstractmethod
+    def href(self): ...
+
+    @property
+    @abstractmethod
+    def uri(self): ...
+
+    # TODO: decide wether this property must be in every model
     # @property
     # @abstractmethod
-    # def id(self):
-    #     raise NotImplementedError
+    # def thumbnails(self): ...
 
+    # TODO: decide wether this property must be in every model
     # @property
     # @abstractmethod
-    # def name(self):
-    #     raise NotImplementedError
+    # def followers(self): ...
 
-    # @property
-    # @abstractmethod
-    # def href(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def albums(self): ...
 
-    # @property
-    # @abstractmethod
-    # def uri(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def tracks(self): ...
 
-    # @property
-    # @abstractmethod
-    # def images(self):
-    #     raise NotImplementedError
-
-    # @property
-    # @abstractmethod
-    # def followers(self):
-    #     raise NotImplementedError
-
-    # @property
-    # @abstractmethod
-    # def albums(self):
-    #     raise NotImplementedError
-
-    # @property
-    # @abstractmethod
-    # def tracks(self):
-    #     raise NotImplementedError
-
-    # @property
-    # @abstractmethod
-    # def related_artists(self):
-    #     raise NotImplementedError
+    @property
+    @abstractmethod
+    def related_artists(self): ...

@@ -1,18 +1,16 @@
 from typing import List, Literal
 
-from melodine.spotify.category import Category
-
+from melodine.base.misc import URIBase
 from melodine.services import service
-
 from melodine.spotify.album import Album
 from melodine.spotify.artist import Artist
+from melodine.spotify.category import Category
 from melodine.spotify.episode import Episode
 from melodine.spotify.player import Player
 from melodine.spotify.playlist import Playlist
 from melodine.spotify.show import Show
 from melodine.spotify.track import PlaylistTrack, Track
 from melodine.utils import Image, singleton
-from melodine.base.misc import URIBase
 
 
 @singleton
@@ -90,7 +88,7 @@ class Client(URIBase):
         """Add the current user as the follower of this playlist"""
         service.spotify.current_user_follow_playlist(playlist_id)
 
-    def unsave_playlist(playlist_id: str) -> None:
+    def unsave_playlist(self, playlist_id: str) -> None:
         return service.spotify.current_user_unfollow_playlist(playlist_id)
 
     def saved_playlists(self, *, limit: int = 50, offset: int = 0) -> List[Playlist]:

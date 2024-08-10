@@ -23,7 +23,7 @@ class YTMusicArtist(ArtistBase, URIBase):
         self, data: Union[TopResultArtist, SearchArtist, PartialArtist, FullArtist]
     ) -> None:
         super().__init__()
-
+        self.__is_data_fetched: bool = False
         self.__data: FullArtist
         self.__base_data = data
 
@@ -38,10 +38,12 @@ class YTMusicArtist(ArtistBase, URIBase):
         raise NotImplementedError()
 
     def __get_data(self):
-        if not isinstance(self.__base_data, FullArtist):
+        if not self.__is_data_fetched:
             self.__data = model_item(
-                service.ytmusic.get_artist(self.id), model_type=FullArtist
+                service.ytmusic.get_artist(self.id),
+                model_type=FullArtist,
             )
+            self.__is_data_fetched = True
         return self.__data
 
     @property
@@ -61,7 +63,7 @@ class YTMusicArtist(ArtistBase, URIBase):
 
     @property
     def name(self) -> str:
-        if isinstance(self.__base_data, (PartialArtist, FullArtist)):
+        if isinstance(self.__base_data, (FullArtist, PartialArtist)):
             return self.__base_data.name
         elif isinstance(self.__base_data, TopResultArtist):
             return self.__base_data.artists[0].name
@@ -78,7 +80,7 @@ class YTMusicArtist(ArtistBase, URIBase):
 
     @cached_property
     def radio_id(self) -> Optional[str]:
-        if isinstance(self.__base_data, (SearchArtist, FullArtist)):
+        if isinstance(self.__base_data, (FullArtist, SearchArtist)):
             return self.__base_data.radio_id
         return self.__get_data().radio_id
 
@@ -102,13 +104,13 @@ class YTMusicArtist(ArtistBase, URIBase):
 
     @cached_property
     def subscribers(self) -> str:
-        if isinstance(self.__base_data, (TopResultArtist, FullArtist)):
+        if isinstance(self.__base_data, (FullArtist, TopResultArtist)):
             return self.__base_data.subscribers
         return self.__get_data().subscribers
 
     @cached_property
     def images(self) -> List[Image]:
-        if isinstance(self.__base_data, (TopResultArtist, SearchArtist, FullArtist)):
+        if isinstance(self.__base_data, (FullArtist, TopResultArtist, SearchArtist)):
             return self.__base_data.thumbnails
         return self.__get_data().thumbnails
 
@@ -146,8 +148,8 @@ class YTMusicArtist(ArtistBase, URIBase):
 if __name__ == "__main__":
     from melodine.ytmusic.views.search import search
 
-    srch = search("sewerslvt", types=["artists"])
-    artist = srch.artists[0]
+    srch = search("sewerslvt")
+    artist = srch.top_result[0]
 
     ytmartist = YTMusicArtist(data=artist)
     print("\n", ytmartist.id)

@@ -36,7 +36,9 @@ class AlbumTrack:
     album: str
     like_status: Literal["LIKE", "INDIFFERENT", "DISLIKE"]
     in_library: Optional[bool]
-    thumbnails: Optional[List[Image]]
+    thumbnails: Optional[
+        List[Image]
+    ]  # images are optional since they can be referenced from their parent album.
     is_available: bool
     is_explicit: bool
     video_type: str

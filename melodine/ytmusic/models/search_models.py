@@ -1,5 +1,9 @@
+"""
+describes the models for the responses from the `search()` endpoints from ytmusicapi.
+"""
+
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from melodine.utils import Image, slots
 from melodine.ytmusic.models.partial_models import PartialAlbum, PartialArtist
@@ -21,10 +25,11 @@ class SearchAlbum:
     type: str
     duration: Optional[str]
     year: str
-    artists: List[PartialArtist]
     browse_id: str
     is_explicit: bool
+    playlist_id: Optional[str]
     thumbnails: List[Image]
+    artists: List[PartialArtist]
     __slots__ = slots(__annotations__)
 
 
@@ -45,7 +50,7 @@ class SearchPlaylist:
     category: str
     result_type: str
     title: str
-    item_count: str
+    item_count: Union[int, str]
     author: str
     browse_id: str
     thumbnails: List[Image]
@@ -58,15 +63,15 @@ class SearchTrack:
     result_type: str
     title: str
     album: PartialAlbum
+    in_library: bool
     feedback_tokens: dict
     video_id: str
     video_type: str
-    duration: Optional[str]
+    duration: str
     year: Optional[int]
     artists: List[PartialArtist]
     duration_seconds: int
     is_explicit: bool
-    in_library: bool
     thumbnails: List[Image]
     __slots__ = slots(__annotations__)
 
@@ -75,13 +80,13 @@ class SearchTrack:
 class SearchVideo:
     category: str
     result_type: str
-    title: str
     video_id: str
     video_type: str
-    duration: Optional[str]
-    year: Optional[int]
+    title: str
     artists: List[PartialArtist]
     views: str
-    duration_seconds: int
+    duration: Optional[str]
     thumbnails: List[Image]
+    year: Optional[int]
+    duration_seconds: int
     __slots__ = slots(__annotations__)

@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-from melodine.utils import slots
-
 
 @dataclass(frozen=True)
 class SearchResultsBase:

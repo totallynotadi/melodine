@@ -36,6 +36,12 @@ _TOP_RES_TYPES: Dict[str, Any] = {
 }
 
 
+def print_debug(search_item: Dict[str, Any], model_type: Type[T], err: Exception):
+    print(err, "\n\n")
+    [print(f"{key}: {val}") for key, val in transform_field_names(search_item).items()]
+    print(model_type, end="\n\n")
+
+
 def model_item(search_item: Dict[str, Any], model_type: Type[T]) -> T:
     """
     Model a result item based on its `result_type` or a given dataclass model.
@@ -50,30 +56,15 @@ def model_item(search_item: Dict[str, Any], model_type: Type[T]) -> T:
         )
     except dacite.MissingValueError as e:
         print("errored on search item:: ", e.field_path)
-        print(e, "\n\n")
-        [
-            print(f"{key}: {val}")
-            for key, val in transform_field_names(search_item).items()
-        ]
-        print(model_type, end="\n\n")
+        print_debug(search_item, model_type, e)
     except dacite.UnexpectedDataError as e:
         print("got unexpected data: ", e.args, e.keys)
-        print(e, "\n\n")
-        [
-            print(f"{key}: {val}")
-            for key, val in transform_field_names(search_item).items()
-        ]
-        print(model_type, end="\n\n")
+        print_debug(search_item, model_type, e)
     except dacite.WrongTypeError as e:
-        print("data with wrong type found ", e, "\n\n")
+        print("data with wrong type found ", e.field_path, e.field_type, "\n\n")
+        print_debug(search_item, model_type, e)
 
-        [
-            print(f"{key}: {val}")
-            for key, val in transform_field_names(search_item).items()
-        ]
-        print(model_type, end="\n\n")
-
-    raise dacite.DaciteError()
+    raise dacite.DaciteError("error during modeling")
 
 
 def group_models(model_items: List[Any]) -> Dict[str, Any]:

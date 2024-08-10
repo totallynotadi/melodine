@@ -45,11 +45,12 @@ class TopResultTrack:
     video_id: str
     video_type: str
     title: str
+    artists: List[PartialArtist]
     album: PartialAlbum
-    artists: List["PartialArtist"]
     duration: str
     duration_seconds: int
-    thumbnails: List["Image"]
+    thumbnails: List[Image]
+    is_explicit: Optional[bool]
     __slots__ = slots(__annotations__)
 
 

@@ -1,3 +1,8 @@
+"""
+describes models for the response from the `get_<object>()` endpoints from ytmusicapi.
+for e.g. get_song(), get_artist(), get_album(), get_channel(), get_playlist(), etc.
+"""
+
 from dataclasses import dataclass
 from typing import List, Literal, Optional
 
@@ -20,14 +25,15 @@ class FullAlbum:
     title: str
     type: str
     thumbnails: List[Image]
+    is_explicit: bool
+    description: Optional[str]
     artists: List[PartialArtist]
     year: str
     track_count: int
+    duration: str
     audio_playlist_id: str
     tracks: List[AlbumTrack]
-    duration: str
     duration_seconds: int
-    is_explicit: bool
     __slots__ = slots(__annotations__)
 
 
@@ -43,10 +49,7 @@ class FullTrack:
     is_available: bool
     is_explicit: bool
     video_type: str
-    views: str
-    # duration: Optional[str]
-    # duration_seconds: Optional[int]
-    # feedback_tokens: FeedbackTokens
+    views: Optional[str]
     __slots__ = slots(__annotations__)
 
 

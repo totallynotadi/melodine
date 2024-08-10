@@ -1,12 +1,11 @@
 from typing import List
 
-from melodine.utils import Image
+from melodine.base.album import AlbumBase
 from melodine.base.misc import URIBase
-
 from melodine.services import service
 from melodine.spotify.artist import Artist
 from melodine.spotify.track import Track
-from melodine.base.album import AlbumBase
+from melodine.utils import Image
 
 
 class Album(URIBase):

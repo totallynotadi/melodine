@@ -1,70 +1,63 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
+
+from typing_extensions import Self
 
 
 class AlbumBase(metaclass=ABCMeta):
-    # @classmethod
-    # def __subclasshook__(cls, subclass):
-    #     return (
-    #         hasattr(subclass, 'id') and
-    #         hasattr(subclass, 'name') and
-    #         hasattr(subclass, 'href') and
-    #         hasattr(subclass, 'uri') and
-    #         hasattr(subclass, 'duration') and
-    #         not hasattr(subclass, 'explicit') and
-    #         hasattr(subclass, 'images') and
-
-    #         hasattr(subclass, 'artists') and
-    #         hasattr(subclass, 'url') and
-
-    #         hasattr(subclass, 'get_recommendations') and callable(
-    #             subclass.get_recommendations)
-    #     )
+    @classmethod
+    @abstractmethod
+    def from_id(cls, resource_id: str) -> Self:
+        raise NotImplementedError()
 
     @classmethod
     @abstractmethod
-    def from_id(cls, resource_id: str): ...
+    def from_url(cls, url: str):
+        raise NotImplementedError()
 
-    @classmethod
+    @property
     @abstractmethod
-    def from_url(cls, url: str): ...
+    def id(self) -> str:
+        raise NotImplementedError()
 
     @property
-    @abstractproperty
-    def id(self) -> str: ...
+    @abstractmethod
+    def name(self):
+        raise NotImplementedError()
 
     @property
-    @abstractproperty
-    def name(self): ...
+    @abstractmethod
+    def href(self):
+        raise NotImplementedError()
 
     @property
-    @abstractproperty
-    def href(self): ...
+    @abstractmethod
+    def uri(self):
+        raise NotImplementedError()
 
     @property
-    @abstractproperty
-    def uri(self): ...
+    @abstractmethod
+    def type(self):
+        raise NotImplementedError()
 
     @property
-    @abstractproperty
-    def type(self): ...
-
-    # @property
-    # @abstractproperty
-    # def year(self):
-    #     ...
-
-    # @property
-    # @abstractproperty
-    # def total_tracks(self):
-    #     ...
+    @abstractmethod
+    def year(self):
+        raise NotImplementedError()
 
     @property
-    @abstractproperty
-    def artists(self): ...
+    @abstractmethod
+    def total_tracks(self):
+        raise NotImplementedError()
 
     @property
-    @abstractproperty
-    def tracks(self): ...
+    @abstractmethod
+    def artists(self):
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def tracks(self):
+        raise NotImplementedError()
 
 
 class Test(AlbumBase):
@@ -98,6 +91,14 @@ class Test(AlbumBase):
 
     @property
     def uri(self):
+        pass
+
+    @property
+    def total_tracks(self):
+        pass
+
+    @property
+    def year(self):
         pass
 
     @property

@@ -18,6 +18,7 @@ class YTMusicAlbum(AlbumBase, URIBase):
         self, data: Union[PartialAlbum, TopResultAlbum, SearchAlbum, FullAlbum]
     ) -> None:
         super().__init__()
+        self.__is_data_fetched: bool = False
         self.__data: FullAlbum
         self.__base_data = data
 
@@ -38,7 +39,7 @@ class YTMusicAlbum(AlbumBase, URIBase):
     #     thumbnails: Optional[List[Image]] = None,
     # ) -> SearchAlbum:
     #     """
-    #     for cases when an album's `browseId` is not available.
+    #     for cases when an album's `browseId` is not available (only happens in case of FullAlbum).
 
     #     use the present artists's `browseId` to fetch it's data \
     #     and find this given albums among the artist's albums.
@@ -46,11 +47,12 @@ class YTMusicAlbum(AlbumBase, URIBase):
     #     ...
 
     def __get_data(self) -> FullAlbum:
-        if not isinstance(self.__base_data, FullAlbum):
+        if not self.__is_data_fetched:
             self.__data = model_item(
                 service.ytmusic.get_album(self.id),
                 model_type=FullAlbum,
             )
+            self.__is_data_fetched = True
         return self.__data
 
     @cached_property
@@ -95,7 +97,7 @@ class YTMusicAlbum(AlbumBase, URIBase):
 
     @cached_property
     def type(self):
-        if isinstance(self.__base_data, (TopResultAlbum, FullAlbum)):
+        if isinstance(self.__base_data, (FullAlbum, TopResultAlbum)):
             return self.__base_data.type
         return self.__get_data().type
 
@@ -113,7 +115,7 @@ class YTMusicAlbum(AlbumBase, URIBase):
 
     @cached_property
     def duration(self) -> str:
-        if isinstance(self.__base_data, (SearchAlbum, FullAlbum)):
+        if isinstance(self.__base_data, (FullAlbum, SearchAlbum)):
             if self.__base_data.duration is not None:
                 return self.__base_data.duration
             else:
